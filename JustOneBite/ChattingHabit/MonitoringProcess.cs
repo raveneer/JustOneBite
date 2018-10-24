@@ -63,6 +63,8 @@ namespace ChattingHabit
             {
                 process.Kill();
             }
+
+            SessionUsedTime = new TimeSpan(0);
         }
 
         private string IsRunningString()
