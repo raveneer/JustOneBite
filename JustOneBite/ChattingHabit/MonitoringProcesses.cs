@@ -33,5 +33,10 @@ namespace ChattingHabit
                 monitoringProcess.Tick();
             }
         }
+
+        public string GetProcessesInfo()
+        {
+            return string.Join("\r\n", _processes.Select(x => x.GetInfo()));
+        }
     }
 }

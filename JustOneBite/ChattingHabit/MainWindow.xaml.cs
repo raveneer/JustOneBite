@@ -32,8 +32,8 @@ namespace ChattingHabit
         private void InitMonitoringProcesses()
         {
             _monitoringProcesses = new MonitoringProcesses();
-            _monitoringProcesses.Add("KakakoTalk");
-            _monitoringProcesses.Add("Slack");
+            _monitoringProcesses.Add("KakaoTalk");
+            _monitoringProcesses.Add("slack");
         }
 
         private void AddProcessToMonitoringList(string processName)
@@ -64,16 +64,17 @@ namespace ChattingHabit
         {
             ShowClock();
             _monitoringProcesses.Tick();
+            ManagingProcessInfoText.Text = _monitoringProcesses.GetProcessesInfo();
         }
 
         private void ShowClock()
         {
-            ManagingProcessInfoText.Text = DateTime.Now.ToLongTimeString();
+            //ManagingProcessInfoText.Text = DateTime.Now.ToLongTimeString();
         }
 
         private void ShowProcesses()
         {
-            var processes = Process.GetProcesses();
+            var processes = Process.GetProcesses().OrderBy(x => x.ProcessName).ToArray();
             var listBox = new ListBox();
             ProcessList.Content = listBox;
             listBox.DisplayMemberPath = "Name";
@@ -89,6 +90,10 @@ namespace ChattingHabit
         }
 
         private void ChattingInfoText_Copy_TextChanged(object sender, TextChangedEventArgs e)
+        {
+        }
+
+        private void ManagingProcessInfoText_TextChanged(object sender, TextChangedEventArgs e)
         {
         }
     }
