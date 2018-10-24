@@ -68,14 +68,12 @@ namespace ChattingHabit
 
         private void ShowClock()
         {
-            ChattingInfoText.Text = DateTime.Now.ToLongTimeString();
+            ManagingProcessInfoText.Text = DateTime.Now.ToLongTimeString();
         }
 
         private void ShowProcesses()
         {
             var processes = Process.GetProcesses();
-            ProcessText.Text = string.Join("\r\n", processes.Select(x => x.ProcessName));
-
             var listBox = new ListBox();
             ProcessList.Content = listBox;
             listBox.DisplayMemberPath = "Name";
@@ -88,6 +86,10 @@ namespace ChattingHabit
         public class MyObject
         {
             public string Name { get; set; }
+        }
+
+        private void ChattingInfoText_Copy_TextChanged(object sender, TextChangedEventArgs e)
+        {
         }
     }
 }
