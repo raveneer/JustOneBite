@@ -8,7 +8,6 @@
         Title="MainWindow" Height="450" Width="800">
     <Grid>
         <TextBox x:Name="ProcessText" HorizontalAlignment="Left" Height="341" Margin="26,38,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="250" RenderTransformOrigin="0.494,0.502" />
-        <Button x:Name="KillKakaoTalk" Content="카톡죽이기" HorizontalAlignment="Left" Margin="296,10,0,0" VerticalAlignment="Top" Width="112" Height="32" Cursor="Hand" Click="KillKakaoTalk_Click" />
         <TextBox x:Name="ChattingInfoText" HorizontalAlignment="Left" Height="217" Margin="296,120,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="165" RenderTransformOrigin="0.494,0.502" />
         <ScrollViewer x:Name="ProcessList" HorizontalAlignment="Left" Height="356" Margin="490,38,0,0" VerticalAlignment="Top" Width="139" CanContentScroll="True" />
         <ScrollViewer x:Name="MonitoringProcessList" HorizontalAlignment="Left" Height="356" Margin="634,38,0,0" VerticalAlignment="Top" Width="139" />

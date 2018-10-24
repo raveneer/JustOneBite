@@ -18,15 +18,22 @@ namespace ChattingHabit
     /// </summary>
     public partial class MainWindow : Window
     {
-        private const int TICKNANOSECONDS = 1000;
-        private Dictionary<string, TimeSpan> _processRunTimeDic = new Dictionary<string, TimeSpan>();
-        private readonly List<string> _monitoringProcesses = new List<string>() { "KakaoTalk" };
+        public const int TICKSECONDS = 1;
+        private MonitoringProcesses _monitoringProcesses;
 
         public MainWindow()
         {
             InitializeComponent();
+            InitMonitoringProcesses();
             ShowProcesses();
             StartTimer();
+        }
+
+        private void InitMonitoringProcesses()
+        {
+            _monitoringProcesses = new MonitoringProcesses();
+            _monitoringProcesses.Add("KakakoTalk");
+            _monitoringProcesses.Add("Slack");
         }
 
         private void AddProcessToMonitoringList(string processName)
@@ -38,7 +45,7 @@ namespace ChattingHabit
             _monitoringProcesses.Add(processName);
         }
 
-        private bool IsValidProcessName(string processName)
+        public static bool IsValidProcessName(string processName)
         {
             var processes = Process.GetProcesses();
             return processes.Any(x => x.ProcessName == processName);
@@ -48,44 +55,20 @@ namespace ChattingHabit
         {
             // 윈폼 타이머 사용
             var timer = new System.Windows.Threading.DispatcherTimer();
-            timer.Interval = new TimeSpan(TICKNANOSECONDS); // 1초
-            timer.Tick += new EventHandler(OnTick);
+            timer.Interval = new TimeSpan(0, 0, TICKSECONDS); // 1초
+            timer.Tick += OnTick;
             timer.Start();
         }
 
         private void OnTick(object sender, EventArgs e)
         {
             ShowClock();
-            Monitoring();
+            _monitoringProcesses.Tick();
         }
 
         private void ShowClock()
         {
             ChattingInfoText.Text = DateTime.Now.ToLongTimeString();
-        }
-
-        private void Monitoring()
-        {
-            if (!_monitoringProcesses.Any())
-            {
-                return;
-            }
-            foreach (var monitoringProcess in _monitoringProcesses)
-            {
-                IncreaseRunTime(monitoringProcess);
-            }
-        }
-
-        private void IncreaseRunTime(string monitoringProcess)
-        {
-            if (_processRunTimeDic.ContainsKey(monitoringProcess))
-            {
-                _processRunTimeDic[monitoringProcess] += new TimeSpan(TICKNANOSECONDS);
-            }
-            else
-            {
-                _processRunTimeDic.Add(monitoringProcess, new TimeSpan(TICKNANOSECONDS));
-            }
         }
 
         private void ShowProcesses()
@@ -105,20 +88,6 @@ namespace ChattingHabit
         public class MyObject
         {
             public string Name { get; set; }
-        }
-
-        private void KillKakaoTalk_Click(object sender, RoutedEventArgs e)
-        {
-            KillKakaoTalkProcess();
-        }
-
-        private static void KillKakaoTalkProcess()
-        {
-            var kakaoProcess = Process.GetProcessesByName("KakaoTalk");
-            foreach (var process in kakaoProcess)
-            {
-                process.Kill();
-            }
         }
     }
 }
