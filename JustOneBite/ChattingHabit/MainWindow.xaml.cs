@@ -26,6 +26,7 @@ namespace ChattingHabit
             InitMonitoringProcesses();
             ShowProcesses();
             StartTimer();
+            EventManager.ShowLogMessage += OnShowLogMessage;
         }
 
         public static bool IsValidProcessName(string processName)
@@ -85,6 +86,30 @@ namespace ChattingHabit
         public class MyObject
         {
             public string Name { get; set; }
+        }
+
+        private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+        }
+
+        private void OnClick_ChangeTotalLimitButton(object sender, RoutedEventArgs e)
+        {
+            ChangeFeedBackBoxText("하루 사용시간이 x 분으로 변경되었습니다!");
+        }
+
+        private void OnClick_ChangeSessionLimitButton(object sender, RoutedEventArgs e)
+        {
+            ChangeFeedBackBoxText("1회 사용시간이 x 분으로 변경되었습니다!");
+        }
+
+        private void ChangeFeedBackBoxText(string messeage)
+        {
+            FeedBackText.Text = messeage;
+        }
+
+        private void OnShowLogMessage(string obj)
+        {
+            ChangeFeedBackBoxText(obj);
         }
     }
 }

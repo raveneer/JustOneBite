@@ -17,5 +17,12 @@ namespace ChattingHabit
         {
             ProcessTotalLimitReached?.Invoke(process);
         }
+
+        public static Action<string> ShowLogMessage;
+
+        public static void Broadcast_ShowLogMessage(string str)
+        {
+            ShowLogMessage?.Invoke(str);
+        }
     }
 }
