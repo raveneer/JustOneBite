@@ -6,15 +6,14 @@ namespace ChattingHabit
 {
     public class MonitoringProcess
     {
-        public string ProcessName;
-        public TimeSpan TotalUsedTime;
-        public TimeSpan SessionUsedTime;
-        public int TotalSessionCount;
-        public TimeSpan SessionTimeLimit;
-        public TimeSpan TotalUsedTimeLimit;
-
         private const int DefaultSessionLimitMin = 5;
         private const int DefaultTotalLimitMin = 60;
+        public int TotalSessionCount;
+        public string ProcessName;
+        public TimeSpan SessionTimeLimit;
+        public TimeSpan SessionUsedTime;
+        public TimeSpan TotalUsedTime;
+        public TimeSpan TotalUsedTimeLimit;
 
         public void Tick()
         {
@@ -40,7 +39,7 @@ namespace ChattingHabit
             }
         }
 
-        public static MonitoringProcess NewProcess(Process process)
+        public static MonitoringProcess GetNewProcess(Process process)
         {
             return new MonitoringProcess
             {
@@ -48,12 +47,6 @@ namespace ChattingHabit
                 SessionTimeLimit = new TimeSpan(0, DefaultSessionLimitMin, 0),
                 TotalUsedTimeLimit = new TimeSpan(0, DefaultTotalLimitMin, 0)
             };
-        }
-
-        private bool IsRunning()
-        {
-            var processes = Process.GetProcessesByName(ProcessName);
-            return processes.Any();
         }
 
         public void KillProcess()
@@ -65,11 +58,6 @@ namespace ChattingHabit
             }
 
             SessionUsedTime = new TimeSpan(0);
-        }
-
-        private string IsRunningString()
-        {
-            return IsRunning() ? "사용중" : "꺼짐";
         }
 
         public string GetInfo()
@@ -84,6 +72,17 @@ namespace ChattingHabit
                 $"포커스 된 횟수 : xx 회"
                 + "\r\n" +
                 $"입력한 문자 : xx 자";
+        }
+
+        private bool IsRunning()
+        {
+            var processes = Process.GetProcessesByName(ProcessName);
+            return processes.Any();
+        }
+
+        private string IsRunningString()
+        {
+            return IsRunning() ? "사용중" : "꺼짐";
         }
     }
 }

@@ -50,7 +50,7 @@ namespace ChattingHabit
                 return;
             }
 
-            var newMonitoringProcess = MonitoringProcess.NewProcess(process);
+            var newMonitoringProcess = MonitoringProcess.GetNewProcess(process);
             _processes.Add(newMonitoringProcess);
         }
     }

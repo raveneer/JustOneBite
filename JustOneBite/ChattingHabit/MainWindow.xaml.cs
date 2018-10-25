@@ -1,8 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Windows;
-using System.Diagnostics;
 using System.Windows.Controls;
 
 namespace ChattingHabit
@@ -29,6 +28,12 @@ namespace ChattingHabit
             StartTimer();
         }
 
+        public static bool IsValidProcessName(string processName)
+        {
+            var processes = Process.GetProcesses();
+            return processes.Any(x => x.ProcessName == processName);
+        }
+
         private void InitMonitoringProcesses()
         {
             _monitoringProcesses = new MonitoringProcesses();
@@ -36,19 +41,11 @@ namespace ChattingHabit
             _monitoringProcesses.Add("slack");
         }
 
-        private void AddProcessToMonitoringList(string processName)
+        private void OnTick(object sender, EventArgs e)
         {
-            if (!IsValidProcessName(processName))
-            {
-                throw new ArgumentException();
-            }
-            _monitoringProcesses.Add(processName);
-        }
-
-        public static bool IsValidProcessName(string processName)
-        {
-            var processes = Process.GetProcesses();
-            return processes.Any(x => x.ProcessName == processName);
+            ShowClock();
+            _monitoringProcesses.Tick();
+            ManagingProcessInfoText.Text = _monitoringProcesses.GetProcessesInfo();
         }
 
         private void StartTimer()
@@ -58,13 +55,6 @@ namespace ChattingHabit
             timer.Interval = new TimeSpan(0, 0, TICKSECONDS); // 1초
             timer.Tick += OnTick;
             timer.Start();
-        }
-
-        private void OnTick(object sender, EventArgs e)
-        {
-            ShowClock();
-            _monitoringProcesses.Tick();
-            ManagingProcessInfoText.Text = _monitoringProcesses.GetProcessesInfo();
         }
 
         private void ShowClock()
@@ -84,17 +74,17 @@ namespace ChattingHabit
             }
         }
 
-        public class MyObject
-        {
-            public string Name { get; set; }
-        }
-
         private void ChattingInfoText_Copy_TextChanged(object sender, TextChangedEventArgs e)
         {
         }
 
         private void ManagingProcessInfoText_TextChanged(object sender, TextChangedEventArgs e)
         {
+        }
+
+        public class MyObject
+        {
+            public string Name { get; set; }
         }
     }
 }
