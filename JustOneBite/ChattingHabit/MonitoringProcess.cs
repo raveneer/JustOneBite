@@ -6,8 +6,6 @@ namespace ChattingHabit
 {
     public class MonitoringProcess
     {
-        private const int DefaultSessionLimitMin = 5;
-        private const int DefaultTotalLimitMin = 60;
         public int TotalSessionCount;
         public string ProcessName;
         public TimeSpan SessionTimeLimit;
@@ -39,13 +37,13 @@ namespace ChattingHabit
             }
         }
 
-        public static MonitoringProcess GetNewProcess(Process process)
+        public static MonitoringProcess GetNewProcess(Process process, int sessionTimeLimit, int totalTimeLimit)
         {
             return new MonitoringProcess
             {
                 ProcessName = process.ProcessName,
-                SessionTimeLimit = new TimeSpan(0, DefaultSessionLimitMin, 0),
-                TotalUsedTimeLimit = new TimeSpan(0, DefaultTotalLimitMin, 0)
+                SessionTimeLimit = new TimeSpan(0, sessionTimeLimit, 0),
+                TotalUsedTimeLimit = new TimeSpan(0, totalTimeLimit, 0)
             };
         }
 
@@ -65,9 +63,9 @@ namespace ChattingHabit
             return
                 $"{ProcessName} ({IsRunningString()})"
                 + "\r\n" +
-                $"1회 사용한도 : {DefaultSessionLimitMin}분(현재 {SessionUsedTime.Minutes}분 {SessionUsedTime.Seconds}초 사용중)"
+                $"1회 사용한도 : {SessionTimeLimit.Minutes}분 (현재 {SessionUsedTime.Minutes}분 {SessionUsedTime.Seconds}초 사용중)"
                 + "\r\n" +
-                $"하루 사용한도 : {DefaultTotalLimitMin}분(현재 {TotalUsedTime.Minutes}분 {TotalUsedTime.Seconds}초 사용중)"
+                $"하루 사용한도 : {TotalUsedTimeLimit.Minutes}분 (현재 {TotalUsedTime.Minutes}분 {TotalUsedTime.Seconds}초 사용중)"
                 + "\r\n" +
                 $"포커스 된 횟수 : xx 회"
                 + "\r\n" +

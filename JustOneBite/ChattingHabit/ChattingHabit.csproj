@@ -70,7 +70,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="MonitoringProcess.cs" />
-    <Compile Include="MonitoringProcesses.cs" />
+    <Compile Include="ProcessCollection.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>

@@ -18,15 +18,20 @@ namespace ChattingHabit
     public partial class MainWindow : Window
     {
         public const int TICKSECONDS = 1;
-        private MonitoringProcesses _monitoringProcesses;
+        private ProcessCollection _processCollection;
+        public static int SessionTimeLimitMinute = 5;
+        public static int TotalTimeLimitMinute = 60;
 
         public MainWindow()
         {
+            EventManager.ShowLogMessage += ChangeFeedBackBoxText;
+
             InitializeComponent();
             InitMonitoringProcesses();
+            ChangeTotalLimit(TotalTimeLimitMinute);
+            ChangeSessionLimit(SessionTimeLimitMinute);
             ShowProcesses();
             StartTimer();
-            EventManager.ShowLogMessage += OnShowLogMessage;
         }
 
         public static bool IsValidProcessName(string processName)
@@ -37,16 +42,16 @@ namespace ChattingHabit
 
         private void InitMonitoringProcesses()
         {
-            _monitoringProcesses = new MonitoringProcesses();
-            _monitoringProcesses.Add("KakaoTalk");
-            _monitoringProcesses.Add("slack");
+            _processCollection = new ProcessCollection();
+            _processCollection.Add("KakaoTalk");
+            _processCollection.Add("slack");
         }
 
         private void OnTick(object sender, EventArgs e)
         {
             ShowClock();
-            _monitoringProcesses.Tick();
-            ManagingProcessInfoText.Text = _monitoringProcesses.GetProcessesInfo();
+            _processCollection.Tick();
+            ManagingProcessInfoText.Text = _processCollection.GetProcessesInfo();
         }
 
         private void StartTimer()
@@ -71,7 +76,7 @@ namespace ChattingHabit
             listBox.DisplayMemberPath = "Name";
             foreach (var process in processes)
             {
-                listBox.Items.Add(new MyObject { Name = process.ProcessName });
+                listBox.Items.Add(new ListBoxElem { Name = process.ProcessName });
             }
         }
 
@@ -83,23 +88,49 @@ namespace ChattingHabit
         {
         }
 
-        public class MyObject
+        public void OnClick_ChangeTotalLimitButton(object sender, RoutedEventArgs e)
         {
-            public string Name { get; set; }
-        }
-
-        private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
-        {
-        }
-
-        private void OnClick_ChangeTotalLimitButton(object sender, RoutedEventArgs e)
-        {
-            ChangeFeedBackBoxText("하루 사용시간이 x 분으로 변경되었습니다!");
+            if (TryGetMinute(TotalLimitText.Text, out var minute))
+            {
+                ChangeTotalLimit(minute);
+            }
         }
 
         private void OnClick_ChangeSessionLimitButton(object sender, RoutedEventArgs e)
         {
-            ChangeFeedBackBoxText("1회 사용시간이 x 분으로 변경되었습니다!");
+            if (TryGetMinute(SessionLimitText.Text, out var minute))
+            {
+                ChangeSessionLimit(minute);
+            }
+        }
+
+        private void ChangeTotalLimit(int minute)
+        {
+            TotalTimeLimitMinute = minute;
+            _processCollection.ChangeAllTotalTimeLimit(minute);
+            TotalLimitText.Text = minute.ToString();
+            EventManager.ShowLogMessage($"하루 사용시간이 {minute} 분으로 변경되었습니다!");
+        }
+
+        private void ChangeSessionLimit(int minute)
+        {
+            SessionTimeLimitMinute = minute;
+            _processCollection.ChangeAllSessionTimeLimit(minute);
+            SessionLimitText.Text = minute.ToString();
+            EventManager.ShowLogMessage($"1회 사용시간이 {minute}분으로 변경되었습니다!");
+        }
+
+        private bool TryGetMinute(string text, out int minute)
+        {
+            if (!string.IsNullOrEmpty(text) && text.All(char.IsNumber) && int.Parse(text) >= 1)
+            {
+                minute = int.Parse(text);
+                return true;
+            }
+
+            EventManager.ShowLogMessage("잘못된 입력입니다. 1 이상 의 숫자를 넣어주세요.");
+            minute = 0;
+            return false;
         }
 
         private void ChangeFeedBackBoxText(string messeage)
@@ -107,9 +138,9 @@ namespace ChattingHabit
             FeedBackText.Text = messeage;
         }
 
-        private void OnShowLogMessage(string obj)
+        public class ListBoxElem
         {
-            ChangeFeedBackBoxText(obj);
+            public string Name { get; set; }
         }
     }
 }
