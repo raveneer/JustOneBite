@@ -64,9 +64,9 @@ namespace ChattingHabit
             return
                 $"{ProcessName} ({IsRunningString()})"
                 + "\r\n" +
-                $"1회 사용한도 : {SessionTimeLimit.Minutes}분 (현재 {SessionUsedTime.Minutes}분 {SessionUsedTime.Seconds}초 사용중)"
+                $"1회 사용한도 : {SessionTimeLimit.TotalMinutes}분 (현재 {SessionUsedTime.Minutes}분 {SessionUsedTime.Seconds}초 사용중)"
                 + "\r\n" +
-                $"하루 사용한도 : {TotalUsedTimeLimit.Minutes}분 (현재 {TotalUsedTime.Minutes}분 {TotalUsedTime.Seconds}초 사용중)"
+                $"하루 사용한도 : {TotalUsedTimeLimit.TotalMinutes}분 (현재 {TotalUsedTime.Minutes}분 {TotalUsedTime.Seconds}초 사용중)"
                 + "\r\n" +
                 $"포커스 된 횟수 : xx 회"
                 + "\r\n" +
