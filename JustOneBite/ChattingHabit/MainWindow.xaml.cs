@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using Newtonsoft.Json;
 
 namespace ChattingHabit
 {
@@ -21,6 +23,7 @@ namespace ChattingHabit
         private ProcessCollection _processCollection;
         public static int SessionTimeLimitMinute = 5;
         public static int TotalTimeLimitMinute = 60;
+        private const string SaveFileName = "ChattingHabitSave.Json";
 
         public MainWindow()
         {
@@ -52,6 +55,8 @@ namespace ChattingHabit
             ShowClock();
             _processCollection.Tick();
             ManagingProcessInfoText.Text = _processCollection.GetProcessesInfo();
+
+            SaveDataToFile();
         }
 
         private void StartTimer()
@@ -133,6 +138,17 @@ namespace ChattingHabit
             return false;
         }
 
+        private void SaveDataToFile()
+        {
+            var saveFileLocation = System.AppDomain.CurrentDomain.BaseDirectory + SaveFileName;
+            using (var stream = new StreamWriter(File.Open(saveFileLocation, FileMode.Create)))
+            {
+                var dataJson = JsonConvert.SerializeObject(_processCollection, Formatting.Indented);
+                EventManager.ShowLogMessage(dataJson);
+                stream.Write(dataJson);
+            }
+        }
+
         private void ChangeFeedBackBoxText(string messeage)
         {
             FeedBackText.Text = messeage;
@@ -141,6 +157,10 @@ namespace ChattingHabit
         public class ListBoxElem
         {
             public string Name { get; set; }
+        }
+
+        public class SaveData
+        {
         }
     }
 }

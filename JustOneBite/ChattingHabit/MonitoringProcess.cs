@@ -4,6 +4,7 @@ using System.Linq;
 
 namespace ChattingHabit
 {
+    [Serializable]
     public class MonitoringProcess
     {
         public int TotalSessionCount;

@@ -5,29 +5,33 @@ using System.Linq;
 
 namespace ChattingHabit
 {
+    [Serializable]
     public class ProcessCollection
     {
-        private readonly List<MonitoringProcess> _processes = new List<MonitoringProcess>();
-        private readonly List<string> _monitoringProcessNames = new List<string>();
+        //제이슨 저장을 위해 부득이 public 으로 둠.
+        public List<MonitoringProcess> Processes = new List<MonitoringProcess>();
+
+        //제이슨 저장을 위해 부득이 public 으로 둠.
+        public List<string> MonitoringProcessNames = new List<string>();
 
         public void Add(string processName)
         {
-            _monitoringProcessNames.Add(processName);
+            MonitoringProcessNames.Add(processName);
         }
 
         public void Remove(string processName)
         {
-            _processes.RemoveAll(x => x.ProcessName == processName);
+            Processes.RemoveAll(x => x.ProcessName == processName);
         }
 
         public void Tick()
         {
-            foreach (var name in _monitoringProcessNames)
+            foreach (var name in MonitoringProcessNames)
             {
                 TryAddMonitoringProcess(name, MainWindow.SessionTimeLimitMinute, MainWindow.TotalTimeLimitMinute);
             }
 
-            foreach (var monitoringProcess in _processes)
+            foreach (var monitoringProcess in Processes)
             {
                 monitoringProcess.Tick();
             }
@@ -35,12 +39,12 @@ namespace ChattingHabit
 
         public string GetProcessesInfo()
         {
-            return string.Join("\r\n", _processes.Select(x => x.GetInfo()));
+            return string.Join("\r\n", Processes.Select(x => x.GetInfo()));
         }
 
         private void TryAddMonitoringProcess(string processName, int sessionTimeLimit, int totalTimeLimit)
         {
-            if (_processes.Any(x => x.ProcessName == processName))
+            if (Processes.Any(x => x.ProcessName == processName))
             {
                 return;
             }
@@ -52,17 +56,17 @@ namespace ChattingHabit
             }
 
             var newMonitoringProcess = MonitoringProcess.GetNewProcess(process, sessionTimeLimit, totalTimeLimit);
-            _processes.Add(newMonitoringProcess);
+            Processes.Add(newMonitoringProcess);
         }
 
         public void ChangeAllSessionTimeLimit(int minute)
         {
-            _processes.ForEach(x => x.SessionTimeLimit = new TimeSpan(0, minute, 0));
+            Processes.ForEach(x => x.SessionTimeLimit = new TimeSpan(0, minute, 0));
         }
 
         public void ChangeAllTotalTimeLimit(int minute)
         {
-            _processes.ForEach(x => x.TotalUsedTimeLimit = new TimeSpan(0, minute, 0));
+            Processes.ForEach(x => x.TotalUsedTimeLimit = new TimeSpan(0, minute, 0));
         }
     }
 }
