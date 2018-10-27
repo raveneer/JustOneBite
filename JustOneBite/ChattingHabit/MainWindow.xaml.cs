@@ -21,21 +21,22 @@ namespace ChattingHabit
     {
         public const int TICKSECONDS = 1;
         private ProcessCollection _processCollection;
-        public static int SessionTimeLimitMinute = 5;
-        public static int TotalTimeLimitMinute = 60;
         public static int AutoSaveTermSec = 10;
         private const string SaveFileName = "ChattingHabitSave.Json";
         private readonly string _saveFilePath = System.AppDomain.CurrentDomain.BaseDirectory + SaveFileName;
         private readonly string _systemSaveFilePath = System.AppDomain.CurrentDomain.BaseDirectory + "ChattingHabitSystemSave.Json";
         private bool _isFirstRunningInDay;
+        public static int SessionTimeLimitMinute;
+        public static int TotalTimeLimitMinute;
+        private DateTime _nextResetTime;
 
         public MainWindow()
         {
             EventManager.ShowLogMessage += ChangeFeedBackBoxText;
 
             InitializeComponent();
-            InitSystemSetting();
-            InitMonitoringProcesses();
+            LoadSystemSetting();
+            LoadMonitoringProcesses();
             ChangeTotalLimit(TotalTimeLimitMinute);
             ChangeSessionLimit(SessionTimeLimitMinute);
             ShowProcesses();
@@ -43,22 +44,25 @@ namespace ChattingHabit
             StartAutoSaveTick();
         }
 
-        private void InitSystemSetting()
+        private void LoadSystemSetting()
         {
+            SystemSettingSaveData systemSettingSaveData;
             if (!File.Exists(_systemSaveFilePath))
             {
-                return;
+                systemSettingSaveData = SystemSettingSaveData.Default();
+            }
+            else
+            {
+                string json = File.ReadAllText(_systemSaveFilePath);
+                systemSettingSaveData = JsonConvert.DeserializeObject<SystemSettingSaveData>(json);
             }
 
-            string json = File.ReadAllText(_systemSaveFilePath);
-            var systemSettingSaveData = JsonConvert.DeserializeObject<SystemSettingSaveData>(json);
             SessionTimeLimitMinute = systemSettingSaveData.SessionTimeLimitMinute;
             TotalTimeLimitMinute = systemSettingSaveData.TotalTimeLimitMinute;
-            var lastSavedTime = systemSettingSaveData.LastSavedTime;
-            _isFirstRunningInDay = lastSavedTime.Date != DateTime.Now.Date;
+            _nextResetTime = systemSettingSaveData.NextResetTime;
         }
 
-        private void InitMonitoringProcesses()
+        private void LoadMonitoringProcesses()
         {
             if (File.Exists(_saveFilePath))
             {
@@ -86,6 +90,7 @@ namespace ChattingHabit
         private void OnTick(object sender, EventArgs e)
         {
             ShowClock();
+            IfTimeOverResetUsedTime();
             _processCollection.Tick();
             ManagingProcessInfoText.Text = _processCollection.GetProcessesInfo();
         }
@@ -189,7 +194,7 @@ namespace ChattingHabit
                 var systemSaveData = new SystemSettingSaveData();
                 systemSaveData.TotalTimeLimitMinute = TotalTimeLimitMinute;
                 systemSaveData.SessionTimeLimitMinute = SessionTimeLimitMinute;
-                systemSaveData.LastSavedTime = DateTime.Now;
+                systemSaveData.NextResetTime = _nextResetTime;
                 var dataJson = JsonConvert.SerializeObject(systemSaveData, Formatting.Indented);
                 stream.Write(dataJson);
             }
@@ -209,6 +214,15 @@ namespace ChattingHabit
             FeedBackText.Text = messeage;
         }
 
+        private void IfTimeOverResetUsedTime()
+        {
+            if (DateTime.Now >= _nextResetTime)
+            {
+                _processCollection.ResetUsedTime();
+                _nextResetTime = _nextResetTime + new TimeSpan(1, 0, 0, 0);
+            }
+        }
+
         public class ListBoxElem
         {
             public string Name { get; set; }
@@ -216,9 +230,19 @@ namespace ChattingHabit
 
         public class SystemSettingSaveData
         {
-            public int SessionTimeLimitMinute = 5;
-            public int TotalTimeLimitMinute = 60;
-            public DateTime LastSavedTime;
+            public int SessionTimeLimitMinute;
+            public int TotalTimeLimitMinute;
+            public DateTime NextResetTime;
+
+            public static SystemSettingSaveData Default()
+            {
+                return new SystemSettingSaveData()
+                {
+                    SessionTimeLimitMinute = 5,
+                    TotalTimeLimitMinute = 60,
+                    NextResetTime = DateTime.Now + new TimeSpan(1, 0, 0, 0)
+                };
+            }
         }
     }
 }
