@@ -17,5 +17,11 @@
         <TextBox HorizontalAlignment="Left" Height="23" Margin="300,10,0,0" TextWrapping="Wrap" Text="1회 사용한도 (분)" VerticalAlignment="Top" Width="146"  Background="White" TextAlignment="Center" IsReadOnly ="True" />
         <TextBox HorizontalAlignment="Left" Height="23" Margin="300,93,0,0" TextWrapping="Wrap" Text="하루 사용한도 (분)" VerticalAlignment="Top" Width="146"  Background="White" TextAlignment="Center" IsReadOnly ="True" />
         <TextBox x:Name="FeedBackText" HorizontalAlignment="Left" Height="64" Margin="300,163,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="146"  Background="White" TextAlignment="Center" IsReadOnly ="True" />
+        <TextBox HorizontalAlignment="Left" Height="23" Margin="491,295,0,0" TextWrapping="Wrap" Text="초기화 시간" VerticalAlignment="Top" Width="137"  Background="White" TextAlignment="Center" IsReadOnly ="True" TextChanged="TextBox_TextChanged" />
+        <TextBox x:Name="ResetHourText" HorizontalAlignment="Left" Height="23" Margin="491,323,0,0" TextWrapping="Wrap" Text="5" VerticalAlignment="Top" Width="42" Background="Yellow" TextAlignment="Center" />
+        <TextBox x:Name="ResetMinText" HorizontalAlignment="Left" Height="23" Margin="561,323,0,0" TextWrapping="Wrap" Text="5" VerticalAlignment="Top" Width="35" Background="Yellow" TextAlignment="Center" />
+        <Button x:Name="ChangeResetTime" Content="변경하기!" HorizontalAlignment="Left" Margin="491,351,0,0" VerticalAlignment="Top" Width="137" Height="23" Click="OnClick_ChangeResetTime" />
+        <TextBox HorizontalAlignment="Left" Height="23" Margin="538,323,0,0" TextWrapping="Wrap" Text="시" VerticalAlignment="Top" Width="18"  Background="White" TextAlignment="Center" IsReadOnly ="True" TextChanged="TextBox_TextChanged" />
+        <TextBox HorizontalAlignment="Left" Height="23" Margin="605,323,0,0" TextWrapping="Wrap" Text="분" VerticalAlignment="Top" Width="18"  Background="White" TextAlignment="Center" IsReadOnly ="True" TextChanged="TextBox_TextChanged" />
     </Grid>
 </Window>

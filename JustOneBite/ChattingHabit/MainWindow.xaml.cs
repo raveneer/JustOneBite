@@ -1,10 +1,10 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using Newtonsoft.Json;
 
 namespace ChattingHabit
 {
@@ -21,7 +21,7 @@ namespace ChattingHabit
     {
         public const int TICKSECONDS = 1;
         private ProcessCollection _processCollection;
-        public static int AutoSaveTermSec = 10;
+        public static int AutoSaveTermSec = 1;
         private const string SaveFileName = "ChattingHabitSave.Json";
         private readonly string _saveFilePath = System.AppDomain.CurrentDomain.BaseDirectory + SaveFileName;
         private readonly string _systemSaveFilePath = System.AppDomain.CurrentDomain.BaseDirectory + "ChattingHabitSystemSave.Json";
@@ -60,6 +60,8 @@ namespace ChattingHabit
             SessionTimeLimitMinute = systemSettingSaveData.SessionTimeLimitMinute;
             TotalTimeLimitMinute = systemSettingSaveData.TotalTimeLimitMinute;
             _nextResetTime = systemSettingSaveData.NextResetTime;
+            ResetHourText.Text = _nextResetTime.Hour.ToString();
+            ResetMinText.Text = _nextResetTime.Minute.ToString();
         }
 
         private void LoadMonitoringProcesses()
@@ -128,17 +130,9 @@ namespace ChattingHabit
             }
         }
 
-        private void ChattingInfoText_Copy_TextChanged(object sender, TextChangedEventArgs e)
-        {
-        }
-
-        private void ManagingProcessInfoText_TextChanged(object sender, TextChangedEventArgs e)
-        {
-        }
-
         public void OnClick_ChangeTotalLimitButton(object sender, RoutedEventArgs e)
         {
-            if (TryGetMinute(TotalLimitText.Text, out var minute))
+            if (TryGetNumber(TotalLimitText.Text, out var minute))
             {
                 ChangeTotalLimit(minute);
             }
@@ -146,7 +140,7 @@ namespace ChattingHabit
 
         private void OnClick_ChangeSessionLimitButton(object sender, RoutedEventArgs e)
         {
-            if (TryGetMinute(SessionLimitText.Text, out var minute))
+            if (TryGetNumber(SessionLimitText.Text, out var minute))
             {
                 ChangeSessionLimit(minute);
             }
@@ -166,19 +160,6 @@ namespace ChattingHabit
             _processCollection.ChangeAllSessionTimeLimit(minute);
             SessionLimitText.Text = minute.ToString();
             EventManager.ShowLogMessage($"1회 사용시간이 {minute}분으로 변경되었습니다!");
-        }
-
-        private bool TryGetMinute(string text, out int minute)
-        {
-            if (!string.IsNullOrEmpty(text) && text.All(char.IsNumber) && int.Parse(text) >= 1)
-            {
-                minute = int.Parse(text);
-                return true;
-            }
-
-            EventManager.ShowLogMessage("잘못된 입력입니다. 1 이상 의 숫자를 넣어주세요.");
-            minute = 0;
-            return false;
         }
 
         private void SaveDataToFile()
@@ -220,29 +201,69 @@ namespace ChattingHabit
             {
                 _processCollection.ResetUsedTime();
                 _nextResetTime = _nextResetTime + new TimeSpan(1, 0, 0, 0);
+                EventManager.ShowLogMessage("사용량이 리셋 되었습니다!");
             }
         }
 
-        public class ListBoxElem
+        private void OnClick_ChangeResetTime(object sender, RoutedEventArgs e)
         {
-            public string Name { get; set; }
-        }
-
-        public class SystemSettingSaveData
-        {
-            public int SessionTimeLimitMinute;
-            public int TotalTimeLimitMinute;
-            public DateTime NextResetTime;
-
-            public static SystemSettingSaveData Default()
+            if (TryGetNumber(ResetHourText.Text, out var hour) && TryGetNumber(ResetMinText.Text, out var min) && hour <= 24 && min <= 60)
             {
-                return new SystemSettingSaveData()
+                var resetTime = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, hour, min, DateTime.Now.Second);
+                if (resetTime < DateTime.Now)
                 {
-                    SessionTimeLimitMinute = 5,
-                    TotalTimeLimitMinute = 60,
-                    NextResetTime = DateTime.Now + new TimeSpan(1, 0, 0, 0)
-                };
+                    resetTime += new TimeSpan(1, 0, 0, 0);
+                }
+                _nextResetTime = resetTime;
+                EventManager.ShowLogMessage($"리셋 시간이 변경되었습니다. {_nextResetTime.ToLongTimeString()}");
             }
+        }
+
+        private bool TryGetNumber(string text, out int number)
+        {
+            if (!string.IsNullOrEmpty(text) && text.All(char.IsNumber) && int.Parse(text) >= 1)
+            {
+                number = int.Parse(text);
+                return true;
+            }
+
+            EventManager.ShowLogMessage("잘못된 입력입니다. 1 이상 의 숫자를 넣어주세요.");
+            number = 0;
+            return false;
+        }
+
+        private void ChattingInfoText_Copy_TextChanged(object sender, TextChangedEventArgs e)
+        {
+        }
+
+        private void ManagingProcessInfoText_TextChanged(object sender, TextChangedEventArgs e)
+        {
+        }
+
+        private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+        }
+    }
+
+    public class ListBoxElem
+    {
+        public string Name { get; set; }
+    }
+
+    public class SystemSettingSaveData
+    {
+        public int SessionTimeLimitMinute;
+        public int TotalTimeLimitMinute;
+        public DateTime NextResetTime;
+
+        public static SystemSettingSaveData Default()
+        {
+            return new SystemSettingSaveData()
+            {
+                SessionTimeLimitMinute = 5,
+                TotalTimeLimitMinute = 60,
+                NextResetTime = DateTime.Now + new TimeSpan(1, 0, 0, 0)
+            };
         }
     }
 }
