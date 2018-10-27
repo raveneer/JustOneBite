@@ -27,6 +27,7 @@ namespace ChattingHabit
         private const string SaveFileName = "ChattingHabitSave.Json";
         private readonly string _saveFilePath = System.AppDomain.CurrentDomain.BaseDirectory + SaveFileName;
         private readonly string _systemSaveFilePath = System.AppDomain.CurrentDomain.BaseDirectory + "ChattingHabitSystemSave.Json";
+        private bool _isFirstRunningInDay;
 
         public MainWindow()
         {
@@ -53,6 +54,8 @@ namespace ChattingHabit
             var systemSettingSaveData = JsonConvert.DeserializeObject<SystemSettingSaveData>(json);
             SessionTimeLimitMinute = systemSettingSaveData.SessionTimeLimitMinute;
             TotalTimeLimitMinute = systemSettingSaveData.TotalTimeLimitMinute;
+            var lastSavedTime = systemSettingSaveData.LastSavedTime;
+            _isFirstRunningInDay = lastSavedTime.Date != DateTime.Now.Date;
         }
 
         private void InitMonitoringProcesses()
@@ -61,6 +64,10 @@ namespace ChattingHabit
             {
                 string json = File.ReadAllText(_saveFilePath);
                 _processCollection = JsonConvert.DeserializeObject<ProcessCollection>(json);
+                if (_isFirstRunningInDay)
+                {
+                    _processCollection.ResetUsedTime();
+                }
             }
             else
             {
@@ -182,6 +189,7 @@ namespace ChattingHabit
                 var systemSaveData = new SystemSettingSaveData();
                 systemSaveData.TotalTimeLimitMinute = TotalTimeLimitMinute;
                 systemSaveData.SessionTimeLimitMinute = SessionTimeLimitMinute;
+                systemSaveData.LastSavedTime = DateTime.Now;
                 var dataJson = JsonConvert.SerializeObject(systemSaveData, Formatting.Indented);
                 stream.Write(dataJson);
             }
@@ -210,6 +218,7 @@ namespace ChattingHabit
         {
             public int SessionTimeLimitMinute = 5;
             public int TotalTimeLimitMinute = 60;
+            public DateTime LastSavedTime;
         }
     }
 }

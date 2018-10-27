@@ -68,5 +68,10 @@ namespace ChattingHabit
         {
             Processes.ForEach(x => x.TotalUsedTimeLimit = new TimeSpan(0, minute, 0));
         }
+
+        public void ResetUsedTime()
+        {
+            Processes.ForEach(x => x.ResetUsedTime());
+        }
     }
 }

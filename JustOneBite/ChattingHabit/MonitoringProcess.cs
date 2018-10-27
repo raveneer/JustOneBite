@@ -83,5 +83,11 @@ namespace ChattingHabit
         {
             return IsRunning() ? "사용중" : "꺼짐";
         }
+
+        public void ResetUsedTime()
+        {
+            SessionUsedTime = new TimeSpan();
+            TotalUsedTime = new TimeSpan();
+        }
     }
 }
