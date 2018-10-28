@@ -24,5 +24,12 @@ namespace ChattingHabit
         {
             ShowLogMessage?.Invoke(str);
         }
+
+        public static Action PlayTimeOverSound;
+
+        public static void Broadcast_PlayTimeOverSound()
+        {
+            PlayTimeOverSound?.Invoke();
+        }
     }
 }

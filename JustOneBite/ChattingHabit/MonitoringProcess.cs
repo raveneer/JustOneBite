@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Linq;
+using System.Media;
 
 namespace ChattingHabit
 {
@@ -13,6 +14,9 @@ namespace ChattingHabit
         public TimeSpan SessionUsedTime;
         public TimeSpan TotalUsedTime;
         public TimeSpan TotalUsedTimeLimit;
+        public DateTime LastSessionClosedTime;
+        private readonly TimeSpan SessionCoolDown = new TimeSpan(0, 10, 0);
+
         private DateTime _prevTickTime;
 
         public void Tick()
@@ -21,6 +25,12 @@ namespace ChattingHabit
             if (!isRunning)
             {
                 return;
+            }
+
+            //마지막으로 강제로 꺼진 후, 일정 시간 안에는 다시 켤 수 없다.
+            if (DateTime.Now - LastSessionClosedTime < SessionCoolDown)
+            {
+                KillProcess();
             }
 
             IncreaseUsedTime();
@@ -41,7 +51,7 @@ namespace ChattingHabit
         private void IncreaseUsedTime()
         {
             TimeSpan usedTimeThisTick;
-            if (_prevTickTime.Year == 1) //초기값이면,
+            if (_prevTickTime.Year == 1) //초기값이면 (구조체이므 초기값은 1년임)
             {
                 _prevTickTime = DateTime.Now;
                 usedTimeThisTick = new TimeSpan(1);
@@ -72,6 +82,8 @@ namespace ChattingHabit
             KillWebPage();
 
             SessionUsedTime = new TimeSpan(0);
+            LastSessionClosedTime = DateTime.Now;
+            EventManager.Broadcast_PlayTimeOverSound();
         }
 
         private void KillWebPage()

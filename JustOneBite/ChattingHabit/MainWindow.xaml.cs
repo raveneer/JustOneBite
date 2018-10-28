@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Media;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Forms;
@@ -33,12 +34,15 @@ namespace ChattingHabit
         public static int SessionTimeLimitMinute;
         public static int TotalTimeLimitMinute;
         private DateTime _nextResetTime;
+        private SoundPlayer _timeOverSound = new SoundPlayer();
         private WebPageMonitor _webPageMonitor = new WebPageMonitor();
 
         public MainWindow()
         {
             EventManager.ShowLogMessage += ChangeFeedBackBoxText;
+            EventManager.PlayTimeOverSound += () => _timeOverSound.Play();
 
+            InitSounds();
             InitializeComponent();
             LoadSystemSetting();
             LoadMonitoringProcesses();
@@ -47,6 +51,13 @@ namespace ChattingHabit
             ShowProcesses();
             StartTick();
             StartAutoSaveTick();
+        }
+
+        private void InitSounds()
+        {
+            FileStream timeOverSoStream = File.Open(@"TimeOver.wav", FileMode.Open);
+            _timeOverSound = new SoundPlayer(timeOverSoStream);
+            _timeOverSound.Load();
         }
 
         private void LoadSystemSetting()
