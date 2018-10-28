@@ -40,12 +40,17 @@ namespace ChattingHabit
 
         private void IncreaseUsedTime()
         {
-            if (_prevTickTime.Equals(null))
+            TimeSpan usedTimeThisTick;
+            if (_prevTickTime.Year == 1) //초기값이면,
             {
                 _prevTickTime = DateTime.Now;
+                usedTimeThisTick = new TimeSpan(1);
+            }
+            else
+            {
+                usedTimeThisTick = DateTime.Now - _prevTickTime;
             }
 
-            var usedTimeThisTick = DateTime.Now - _prevTickTime;
             SessionUsedTime += usedTimeThisTick;
             TotalUsedTime += usedTimeThisTick;
             _prevTickTime = DateTime.Now;
