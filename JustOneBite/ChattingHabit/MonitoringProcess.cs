@@ -8,7 +8,7 @@ namespace ChattingHabit
     public class MonitoringProcess
     {
         public int TotalSessionCount;
-        public string Name;
+        public string ProcessName;
         public TimeSpan SessionTimeLimit;
         public TimeSpan SessionUsedTime;
         public TimeSpan TotalUsedTime;
@@ -42,7 +42,7 @@ namespace ChattingHabit
         {
             return new MonitoringProcess
             {
-                Name = process.ProcessName,
+                ProcessName = process.ProcessName,
                 SessionTimeLimit = new TimeSpan(0, sessionTimeLimit, 0),
                 TotalUsedTimeLimit = new TimeSpan(0, totalTimeLimit, 0)
             };
@@ -58,12 +58,12 @@ namespace ChattingHabit
 
         private void KillWebPage()
         {
-            WebPageMonitor.KillFocusedWebPage(Name);
+            WebPageMonitor.KillFocusedWebPage(ProcessName);
         }
 
         private void KillApp()
         {
-            var processes = Process.GetProcessesByName(Name);
+            var processes = Process.GetProcessesByName(ProcessName);
             foreach (var process in processes)
             {
                 process.Kill();
@@ -73,7 +73,7 @@ namespace ChattingHabit
         public string GetInfo()
         {
             return
-                $"{Name} ({IsRunningString()})"
+                $"{ProcessName} ({IsRunningString()})"
                 + "\r\n" +
                 $"1회 사용한도 : {SessionTimeLimit.TotalMinutes}분 (현재 {SessionUsedTime.Minutes}분 {SessionUsedTime.Seconds}초 사용중)"
                 + "\r\n" +
@@ -91,13 +91,13 @@ namespace ChattingHabit
 
         private bool IsAppRunning()
         {
-            var processes = Process.GetProcessesByName(Name);
+            var processes = Process.GetProcessesByName(ProcessName);
             return processes.Any();
         }
 
         private bool IsWebPageRunning()
         {
-            return WebPageMonitor.IsWebPageFocused(Name);
+            return WebPageMonitor.IsWebPageFocused(ProcessName);
         }
 
         private string IsRunningString()

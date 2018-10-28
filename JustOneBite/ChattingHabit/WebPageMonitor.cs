@@ -15,7 +15,8 @@ namespace ChattingHabit
 
         public void Tick()
         {
-            _currentFocusedWebPage = GetFocusedChromeURL();
+            var page = GetFocusedChromeURL();
+            _currentFocusedWebPage = page;
         }
 
         /// <summary>
