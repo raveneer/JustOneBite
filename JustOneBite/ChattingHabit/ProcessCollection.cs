@@ -21,7 +21,7 @@ namespace ChattingHabit
 
         public void Remove(string processName)
         {
-            Processes.RemoveAll(x => x.ProcessName == processName);
+            Processes.RemoveAll(x => x.Name == processName);
         }
 
         public void Tick()
@@ -44,7 +44,7 @@ namespace ChattingHabit
 
         private void TryAddMonitoringProcess(string processName, int sessionTimeLimit, int totalTimeLimit)
         {
-            if (Processes.Any(x => x.ProcessName == processName))
+            if (Processes.Any(x => x.Name == processName))
             {
                 return;
             }

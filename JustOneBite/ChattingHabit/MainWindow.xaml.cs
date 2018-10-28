@@ -5,7 +5,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Windows;
-using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Forms;
 using Condition = System.Windows.Condition;
@@ -34,6 +33,7 @@ namespace ChattingHabit
         public static int SessionTimeLimitMinute;
         public static int TotalTimeLimitMinute;
         private DateTime _nextResetTime;
+        private WebPageMonitor _webPageMonitor = new WebPageMonitor();
 
         public MainWindow()
         {
@@ -85,6 +85,7 @@ namespace ChattingHabit
                 _processCollection = new ProcessCollection();
                 _processCollection.Add("KakaoTalk");
                 _processCollection.Add("slack");
+                _processCollection.Add("discord");
             }
         }
 
@@ -99,9 +100,8 @@ namespace ChattingHabit
             ShowClock();
             IfTimeOverResetUsedTime();
             _processCollection.Tick();
+            _webPageMonitor.Tick();
             ManagingProcessInfoText.Text = _processCollection.GetProcessesInfo();
-
-            PrintChromePage();
         }
 
         private void StartTick()
@@ -249,44 +249,6 @@ namespace ChattingHabit
 
         private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
-        }
-
-        private void PrintChromePage()
-        {
-            ChromePagesText.Text = GetFocusedChromeURL();
-        }
-
-        public string GetFocusedChromeURL()
-        {
-            Process[] procsChrome = Process.GetProcessesByName("chrome");
-            foreach (Process chrome in procsChrome)
-            {
-                if (chrome.MainWindowHandle == IntPtr.Zero)
-                {
-                    continue;
-                }
-
-                AutomationElement element = AutomationElement.FromHandle(chrome.MainWindowHandle);
-                if (element == null)
-                {
-                    continue;
-                }
-                AndCondition conditions = new AndCondition(
-                    new PropertyCondition(AutomationElement.ProcessIdProperty, chrome.Id),
-                    new PropertyCondition(AutomationElement.IsControlElementProperty, true),
-                    new PropertyCondition(AutomationElement.IsContentElementProperty, true),
-                    new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.Edit)
-                    );
-
-                AutomationElement elementx = element.FindFirst(TreeScope.Descendants, conditions);
-                if (elementx == null)
-                {
-                    continue;
-                }
-                var url = ((ValuePattern)elementx.GetCurrentPattern(ValuePattern.Pattern)).Current.Value as string;
-                return url;
-            }
-            return "";
         }
     }
 

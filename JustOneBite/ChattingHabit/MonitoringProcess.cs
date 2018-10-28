@@ -8,7 +8,7 @@ namespace ChattingHabit
     public class MonitoringProcess
     {
         public int TotalSessionCount;
-        public string ProcessName;
+        public string Name;
         public TimeSpan SessionTimeLimit;
         public TimeSpan SessionUsedTime;
         public TimeSpan TotalUsedTime;
@@ -16,7 +16,7 @@ namespace ChattingHabit
 
         public void Tick()
         {
-            var isRunning = IsRunning();
+            var isRunning = IsAppRunning() || IsWebPageRunning();
             if (!isRunning)
             {
                 return;
@@ -42,7 +42,7 @@ namespace ChattingHabit
         {
             return new MonitoringProcess
             {
-                ProcessName = process.ProcessName,
+                Name = process.ProcessName,
                 SessionTimeLimit = new TimeSpan(0, sessionTimeLimit, 0),
                 TotalUsedTimeLimit = new TimeSpan(0, totalTimeLimit, 0)
             };
@@ -50,19 +50,30 @@ namespace ChattingHabit
 
         public void KillProcess()
         {
-            var processes = Process.GetProcessesByName(ProcessName);
+            KillApp();
+            KillWebPage();
+
+            SessionUsedTime = new TimeSpan(0);
+        }
+
+        private void KillWebPage()
+        {
+            WebPageMonitor.KillFocusedWebPage(Name);
+        }
+
+        private void KillApp()
+        {
+            var processes = Process.GetProcessesByName(Name);
             foreach (var process in processes)
             {
                 process.Kill();
             }
-
-            SessionUsedTime = new TimeSpan(0);
         }
 
         public string GetInfo()
         {
             return
-                $"{ProcessName} ({IsRunningString()})"
+                $"{Name} ({IsRunningString()})"
                 + "\r\n" +
                 $"1회 사용한도 : {SessionTimeLimit.TotalMinutes}분 (현재 {SessionUsedTime.Minutes}분 {SessionUsedTime.Seconds}초 사용중)"
                 + "\r\n" +
@@ -73,15 +84,25 @@ namespace ChattingHabit
                 $"입력한 문자 : xx 자";
         }
 
-        private bool IsRunning()
+        private bool IsProcessRunning()
         {
-            var processes = Process.GetProcessesByName(ProcessName);
+            return IsAppRunning() || IsWebPageRunning();
+        }
+
+        private bool IsAppRunning()
+        {
+            var processes = Process.GetProcessesByName(Name);
             return processes.Any();
+        }
+
+        private bool IsWebPageRunning()
+        {
+            return WebPageMonitor.IsWebPageFocused(Name);
         }
 
         private string IsRunningString()
         {
-            return IsRunning() ? "사용중" : "꺼짐";
+            return IsProcessRunning() ? "사용중" : "꺼짐";
         }
 
         public void ResetUsedTime()
