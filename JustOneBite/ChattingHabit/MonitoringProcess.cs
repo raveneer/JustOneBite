@@ -13,6 +13,7 @@ namespace ChattingHabit
         public TimeSpan SessionUsedTime;
         public TimeSpan TotalUsedTime;
         public TimeSpan TotalUsedTimeLimit;
+        private DateTime _prevTickTime;
 
         public void Tick()
         {
@@ -22,8 +23,7 @@ namespace ChattingHabit
                 return;
             }
 
-            SessionUsedTime += new TimeSpan(0, 0, MainWindow.TICKSECONDS);
-            TotalUsedTime += new TimeSpan(0, 0, MainWindow.TICKSECONDS);
+            IncreaseUsedTime();
 
             if (SessionUsedTime > SessionTimeLimit)
             {
@@ -38,11 +38,24 @@ namespace ChattingHabit
             }
         }
 
-        public static MonitoringProcess GetNewProcess(Process process, int sessionTimeLimit, int totalTimeLimit)
+        private void IncreaseUsedTime()
+        {
+            if (_prevTickTime.Equals(null))
+            {
+                _prevTickTime = DateTime.Now;
+            }
+
+            var usedTimeThisTick = DateTime.Now - _prevTickTime;
+            SessionUsedTime += usedTimeThisTick;
+            TotalUsedTime += usedTimeThisTick;
+            _prevTickTime = DateTime.Now;
+        }
+
+        public static MonitoringProcess GetNewProcess(string name, int sessionTimeLimit, int totalTimeLimit)
         {
             return new MonitoringProcess
             {
-                ProcessName = process.ProcessName,
+                ProcessName = name,
                 SessionTimeLimit = new TimeSpan(0, sessionTimeLimit, 0),
                 TotalUsedTimeLimit = new TimeSpan(0, totalTimeLimit, 0)
             };
@@ -58,7 +71,7 @@ namespace ChattingHabit
 
         private void KillWebPage()
         {
-            WebPageMonitor.KillFocusedWebPage(ProcessName);
+            WebPageMonitor.CloseFocusedWebPage(ProcessName);
         }
 
         private void KillApp()

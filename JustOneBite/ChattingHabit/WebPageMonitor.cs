@@ -15,8 +15,8 @@ namespace ChattingHabit
 
         public void Tick()
         {
-            var page = GetFocusedChromeURL();
-            _currentFocusedWebPage = page;
+            //var page = GetFocusedChromeURL();
+            //_currentFocusedWebPage = page;
         }
 
         /// <summary>
@@ -35,7 +35,10 @@ namespace ChattingHabit
             return "";
         }
 
-        public static void KillFocusedWebPage(string partOfPageName)
+        /// <summary>
+        /// 웹페이지는 kill 을 하면 모든 탭을 닫아버리므로 close 한다.
+        /// </summary>
+        public static void CloseFocusedWebPage(string partOfPageName)
         {
             if (IsWebPageFocused(partOfPageName))
             {
@@ -44,7 +47,7 @@ namespace ChattingHabit
                 {
                     if (GetProcessURL(process).Contains(partOfPageName))
                     {
-                        process.Kill();
+                        process.CloseMainWindow();
                     }
                 }
             }

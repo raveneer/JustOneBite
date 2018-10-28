@@ -28,7 +28,11 @@ namespace ChattingHabit
         {
             foreach (var name in MonitoringProcessNames)
             {
-                TryAddMonitoringProcess(name, MainWindow.SessionTimeLimitMinute, MainWindow.TotalTimeLimitMinute);
+                if (Processes.Any(x => x.ProcessName == name))
+                {
+                    continue;
+                }
+                AddMonitoringProcess(name, MainWindow.SessionTimeLimitMinute, MainWindow.TotalTimeLimitMinute);
             }
 
             foreach (var monitoringProcess in Processes)
@@ -42,20 +46,9 @@ namespace ChattingHabit
             return string.Join("\r\n", Processes.Select(x => x.GetInfo()));
         }
 
-        private void TryAddMonitoringProcess(string processName, int sessionTimeLimit, int totalTimeLimit)
+        private void AddMonitoringProcess(string processName, int sessionTimeLimit, int totalTimeLimit)
         {
-            if (Processes.Any(x => x.ProcessName == processName))
-            {
-                return;
-            }
-
-            var process = Process.GetProcessesByName(processName).FirstOrDefault();
-            if (process == null)
-            {
-                return;
-            }
-
-            var newMonitoringProcess = MonitoringProcess.GetNewProcess(process, sessionTimeLimit, totalTimeLimit);
+            var newMonitoringProcess = MonitoringProcess.GetNewProcess(processName, sessionTimeLimit, totalTimeLimit);
             Processes.Add(newMonitoringProcess);
         }
 
