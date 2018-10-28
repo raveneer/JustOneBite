@@ -1,11 +1,14 @@
 ﻿using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Windows;
+using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Forms;
+using Condition = System.Windows.Condition;
 using ListBox = System.Windows.Controls.ListBox;
 
 namespace ChattingHabit
@@ -97,6 +100,8 @@ namespace ChattingHabit
             IfTimeOverResetUsedTime();
             _processCollection.Tick();
             ManagingProcessInfoText.Text = _processCollection.GetProcessesInfo();
+
+            PrintChromePage();
         }
 
         private void StartTick()
@@ -244,6 +249,44 @@ namespace ChattingHabit
 
         private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
+        }
+
+        private void PrintChromePage()
+        {
+            ChromePagesText.Text = GetFocusedChromeURL();
+        }
+
+        public string GetFocusedChromeURL()
+        {
+            Process[] procsChrome = Process.GetProcessesByName("chrome");
+            foreach (Process chrome in procsChrome)
+            {
+                if (chrome.MainWindowHandle == IntPtr.Zero)
+                {
+                    continue;
+                }
+
+                AutomationElement element = AutomationElement.FromHandle(chrome.MainWindowHandle);
+                if (element == null)
+                {
+                    continue;
+                }
+                AndCondition conditions = new AndCondition(
+                    new PropertyCondition(AutomationElement.ProcessIdProperty, chrome.Id),
+                    new PropertyCondition(AutomationElement.IsControlElementProperty, true),
+                    new PropertyCondition(AutomationElement.IsContentElementProperty, true),
+                    new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.Edit)
+                    );
+
+                AutomationElement elementx = element.FindFirst(TreeScope.Descendants, conditions);
+                if (elementx == null)
+                {
+                    continue;
+                }
+                var url = ((ValuePattern)elementx.GetCurrentPattern(ValuePattern.Pattern)).Current.Value as string;
+                return url;
+            }
+            return "";
         }
     }
 

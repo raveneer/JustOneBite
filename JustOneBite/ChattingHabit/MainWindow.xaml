@@ -23,5 +23,6 @@
         <Button x:Name="ChangeResetTime" Content="변경하기!" HorizontalAlignment="Left" Margin="491,351,0,0" VerticalAlignment="Top" Width="137" Height="23" Click="OnClick_ChangeResetTime" />
         <TextBox HorizontalAlignment="Left" Height="23" Margin="538,323,0,0" TextWrapping="Wrap" Text="시" VerticalAlignment="Top" Width="18"  Background="White" TextAlignment="Center" IsReadOnly ="True" TextChanged="TextBox_TextChanged" />
         <TextBox HorizontalAlignment="Left" Height="23" Margin="605,323,0,0" TextWrapping="Wrap" Text="분" VerticalAlignment="Top" Width="18"  Background="White" TextAlignment="Center" IsReadOnly ="True" TextChanged="TextBox_TextChanged" />
+        <TextBox x:Name="ChromePagesText" HorizontalAlignment="Left" Height="268" Margin="462,10,0,0" TextWrapping="Wrap" IsReadOnly ="True"  Text="webpages" VerticalAlignment="Top" Width="188" RenderTransformOrigin="0.494,0.502" TextChanged="ChattingInfoText_Copy_TextChanged" />
     </Grid>
 </Window>
