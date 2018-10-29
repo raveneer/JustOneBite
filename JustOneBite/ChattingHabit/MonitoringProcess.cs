@@ -8,15 +8,17 @@ namespace ChattingHabit
     [Serializable]
     public class MonitoringProcess
     {
-        public int TotalSessionCount;
+        public int ActivatedCount;
+        public bool CurrentActive;
         public string ProcessName;
         public TimeSpan SessionTimeLimit;
         public TimeSpan SessionUsedTime;
         public TimeSpan TotalUsedTime;
         public TimeSpan TotalUsedTimeLimit;
         public DateTime LastSessionClosedTime;
-        private readonly TimeSpan SessionCoolDown = new TimeSpan(0, 10, 0);
 
+        private readonly TimeSpan SessionCoolDown = new TimeSpan(0, 10, 0);
+        private readonly int MaxActivatePerDay = 10;
         private DateTime _prevTickTime;
 
         public void Tick()
@@ -24,7 +26,14 @@ namespace ChattingHabit
             var isRunning = IsAppRunning() || IsWebPageRunning();
             if (!isRunning)
             {
+                CurrentActive = false;
                 return;
+            }
+
+            if (!CurrentActive)
+            {
+                CurrentActive = true;
+                ActivatedCount++;
             }
 
             //마지막으로 강제로 꺼진 후, 일정 시간 안에는 다시 켤 수 없다.
@@ -44,6 +53,11 @@ namespace ChattingHabit
             if (TotalUsedTime > TotalUsedTimeLimit)
             {
                 EventManager.Broadcast_ProcessTotalLimitReached(this);
+                KillProcess();
+            }
+
+            if (ActivatedCount > MaxActivatePerDay)
+            {
                 KillProcess();
             }
         }
@@ -96,6 +110,10 @@ namespace ChattingHabit
             var processes = Process.GetProcessesByName(ProcessName);
             foreach (var process in processes)
             {
+                if (process.HasExited)
+                {
+                    continue;
+                }
                 process.Kill();
             }
         }
@@ -109,7 +127,7 @@ namespace ChattingHabit
                 + "\r\n" +
                 $"하루 사용한도 : {TotalUsedTimeLimit.TotalMinutes}분 (현재 {TotalUsedTime.Minutes}분 {TotalUsedTime.Seconds}초 사용중)"
                 + "\r\n" +
-                $"포커스 된 횟수 : xx 회"
+                $"켠 회수 : {ActivatedCount} / {MaxActivatePerDay} 회"
                 + "\r\n" +
                 $"입력한 문자 : xx 자";
         }
@@ -122,6 +140,7 @@ namespace ChattingHabit
         private bool IsAppRunning()
         {
             var processes = Process.GetProcessesByName(ProcessName);
+
             return processes.Any();
         }
 
@@ -135,10 +154,11 @@ namespace ChattingHabit
             return IsProcessRunning() ? "사용중" : "꺼짐";
         }
 
-        public void ResetUsedTime()
+        public void Reset()
         {
             SessionUsedTime = new TimeSpan();
             TotalUsedTime = new TimeSpan();
+            ActivatedCount = 0;
         }
     }
 }

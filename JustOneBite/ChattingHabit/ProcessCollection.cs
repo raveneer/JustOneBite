@@ -64,7 +64,7 @@ namespace ChattingHabit
 
         public void ResetUsedTime()
         {
-            Processes.ForEach(x => x.ResetUsedTime());
+            Processes.ForEach(x => x.Reset());
         }
     }
 }
