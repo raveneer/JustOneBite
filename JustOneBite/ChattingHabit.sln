@@ -5,7 +5,7 @@ VisualStudioVersion = 15.0.27703.2026
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChattingHabit", "ChattingHabit\ChattingHabit.csproj", "{E3CB0383-48BD-48B7-B3CE-CE3144DCFB91}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTestProject", "UnitTestProject\UnitTestProject.csproj", "{603D0D83-1E48-4A04-AEF9-34CACC5511C0}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTestProject2", "UnitTestProject2\UnitTestProject2.csproj", "{8BFB33D1-27F1-4DD1-A566-3DEB293ED904}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,10 +17,10 @@ Global
 		{E3CB0383-48BD-48B7-B3CE-CE3144DCFB91}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E3CB0383-48BD-48B7-B3CE-CE3144DCFB91}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E3CB0383-48BD-48B7-B3CE-CE3144DCFB91}.Release|Any CPU.Build.0 = Release|Any CPU
-		{603D0D83-1E48-4A04-AEF9-34CACC5511C0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{603D0D83-1E48-4A04-AEF9-34CACC5511C0}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{603D0D83-1E48-4A04-AEF9-34CACC5511C0}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{603D0D83-1E48-4A04-AEF9-34CACC5511C0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8BFB33D1-27F1-4DD1-A566-3DEB293ED904}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8BFB33D1-27F1-4DD1-A566-3DEB293ED904}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8BFB33D1-27F1-4DD1-A566-3DEB293ED904}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8BFB33D1-27F1-4DD1-A566-3DEB293ED904}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

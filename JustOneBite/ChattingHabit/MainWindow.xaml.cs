@@ -24,9 +24,9 @@ namespace ChattingHabit
     /// </summary>
     public partial class MainWindow : Window
     {
-        public const int TICKSECONDS = 1;
+        public const int TICKSECONDS = 3;
         private ProcessCollection _processCollection;
-        public static int AutoSaveTermSec = 1;
+        public static int AutoSaveTermSec = 10;
         private const string SaveFileName = "ChattingHabitSave.Json";
         private readonly string _saveFilePath = System.AppDomain.CurrentDomain.BaseDirectory + SaveFileName;
         private readonly string _systemSaveFilePath = System.AppDomain.CurrentDomain.BaseDirectory + "ChattingHabitSystemSave.Json";
@@ -106,7 +106,7 @@ namespace ChattingHabit
             return processes.Any(x => x.ProcessName == processName);
         }
 
-        private void OnTick(object sender, EventArgs e)
+        private void Update(object sender, EventArgs e)
         {
             ShowClock();
             IfTimeOverResetUsedTime();
@@ -118,15 +118,15 @@ namespace ChattingHabit
         private void StartTick()
         {
             var timer = new System.Windows.Threading.DispatcherTimer();
-            timer.Interval = new TimeSpan(0, 0, TICKSECONDS); // 1초
-            timer.Tick += OnTick;
+            timer.Interval = new TimeSpan(0, 0, TICKSECONDS);
+            timer.Tick += Update;
             timer.Start();
         }
 
         private void StartAutoSaveTick()
         {
             var autoSaveTimer = new System.Windows.Threading.DispatcherTimer();
-            autoSaveTimer.Interval = new TimeSpan(0, 0, AutoSaveTermSec); // 1초
+            autoSaveTimer.Interval = new TimeSpan(0, 0, AutoSaveTermSec);
             autoSaveTimer.Tick += (sender, args) => SaveDataToFile();
             autoSaveTimer.Start();
         }
