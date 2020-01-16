@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows.Automation;
 
@@ -9,59 +10,8 @@ namespace ChattingHabit
     {
         private static string _currentFocusedWebPage = "";
 
-        public static bool IsWebPageFocused(string pageName)
-        {
-            return _currentFocusedWebPage.Contains(pageName);
-        }
-
-        public void Tick()
-        {
-            var page = GetFocusedChromeURL();
-            _currentFocusedWebPage = page;
-        }
-
         /// <summary>
-        /// 이 연산은 상당히 무거우므로 자주 돌려서는 안됨.
-        /// </summary>
-        public string GetFocusedChromeURL()
-        {
-            Process[] procsChrome = Process.GetProcessesByName("chrome");
-            foreach (Process chrome in procsChrome)
-            {
-                if (!string.IsNullOrWhiteSpace(GetProcessURL(chrome)))
-                {
-                    return GetProcessURL(chrome);
-                }
-            }
-            return "";
-        }
-
-        /// <summary>
-        /// 이 연산은 상당히 무거우므로 자주 돌려서는 안됨.
-        /// </summary>
-        public async Task<string> GetFocusedChromeURLAsync()
-        {
-            Process[] procsChrome = Process.GetProcessesByName("chrome");
-            foreach (Process chrome in procsChrome)
-            {
-                if (!string.IsNullOrWhiteSpace(GetProcessURL(chrome)))
-                {
-                    /*var task1 = Task.Run(() => LongCalcAsync(10));
-                    // task1이 끝나길 기다렸다가 끝나면 결과치를 sum에 할당
-                    int sum = await task1;*/
-
-                    var task1 = Task.Run(() => GetProcessURL(chrome));
-
-                    // task1이 끝나길 기다렸다가 끝나면 결과치를 sum에 할당
-                    string result = await task1;
-                    return result;
-                }
-            }
-            return "";
-        }
-
-        /// <summary>
-        /// 웹페이지는 kill 을 하면 모든 탭을 닫아버리므로 close 한다.
+        ///     웹페이지는 kill 을 하면 모든 탭을 닫아버리므로 close 한다.
         /// </summary>
         public static void CloseFocusedWebPage(string partOfPageName)
         {
@@ -78,10 +28,75 @@ namespace ChattingHabit
             }
         }
 
-        public void Debug_ChangeOpenedURL(string str)
+        /// <summary>
+        ///     이 연산은 상당히 무거우므로 자주 돌려서는 안됨.
+        /// </summary>
+        public string GetFocusedChromeURL()
         {
-            _currentFocusedWebPage = str;
+            IntPtr hwnd = GetForegroundWindow();
+            // The foreground window can be NULL in certain circumstances, 
+            // such as when a window is losing activation.
+            if (hwnd == null)
+            {
+                return "Unknown";
+            }
+
+            uint pid;
+            GetWindowThreadProcessId(hwnd, out pid);
+
+            foreach (Process p in Process.GetProcessesByName("chrome"))
+            {
+                if (p.Id == pid)
+                {
+                    if (!string.IsNullOrWhiteSpace(GetProcessURL(p)))
+                    {
+                        return GetProcessURL(p);
+                    }
+                }
+            }
+
+            return "";
         }
+
+        /// <summary>
+        ///     이 연산은 상당히 무거우므로 자주 돌려서는 안됨.
+        /// </summary>
+        public async Task<string> GetFocusedChromeURLAsync()
+        {
+            IntPtr hwnd = GetForegroundWindow();
+            GetWindowThreadProcessId(hwnd, out var pid);
+
+            foreach (Process cromeProcess in Process.GetProcessesByName("chrome"))
+            {
+                if (cromeProcess.Id == pid)
+                {
+                    if (!string.IsNullOrWhiteSpace(GetProcessURL(cromeProcess)))
+                    {
+                        var task1 = Task.Run(() => GetProcessURL(cromeProcess));
+                        string result = await task1;
+                        return result;
+                    }
+                }
+            }
+
+            return "";
+
+
+        }
+
+        public static bool IsWebPageFocused(string pageName)
+        {
+            return _currentFocusedWebPage.Contains(pageName);
+        }
+
+        public void Tick()
+        {
+            var page = GetFocusedChromeURL();
+            _currentFocusedWebPage = page;
+        }
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr GetForegroundWindow();
 
         private static string GetProcessURL(Process chrome)
         {
@@ -95,6 +110,7 @@ namespace ChattingHabit
             {
                 return "";
             }
+
             AndCondition conditions = new AndCondition(
                 new PropertyCondition(AutomationElement.ProcessIdProperty, chrome.Id),
                 new PropertyCondition(AutomationElement.IsControlElementProperty, true),
@@ -107,8 +123,17 @@ namespace ChattingHabit
             {
                 return "";
             }
-            var url = ((ValuePattern)elementx.GetCurrentPattern(ValuePattern.Pattern)).Current.Value as string;
+
+            var url = ((ValuePattern) elementx.GetCurrentPattern(ValuePattern.Pattern)).Current.Value;
             return url;
+        }
+
+        [DllImport("user32.dll")]
+        private static extern int GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
+
+        public void Debug_ChangeOpenedURL(string str)
+        {
+            _currentFocusedWebPage = str;
         }
     }
 }

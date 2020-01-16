@@ -7,7 +7,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Forms;
 using Newtonsoft.Json;
+using ListBox = System.Windows.Controls.ListBox;
 
 namespace ChattingHabit
 {
@@ -32,25 +34,27 @@ namespace ChattingHabit
         private readonly string _systemSaveFilePath = AppDomain.CurrentDomain.BaseDirectory + "ChattingHabitSystemSave.Json";
         private readonly SoundPlayer _timeOverSound = new SoundPlayer();
         private readonly WebPageMonitor _webPageMonitor = new WebPageMonitor();
+        public static int TICKSECONDS = 5;
+        private static string SaveFileName = "ChattingHabitSave.Json";
 
         public MainWindow()
         {
-            EventManager.ShowLogMessage += ChangeFeedBackBoxText;
+            //EventManager.ShowLogMessage += ChangeFeedBackBoxText;
             EventManager.PlayTimeOverSound += () => _timeOverSound.Play();
 
             InitSounds();
             InitializeComponent();
-            LoadSystemSetting();
+            //LoadSystemSetting();
             LoadMonitoringProcesses();
-            ChangeTotalLimit(TotalTimeLimitMinute);
-            ChangeSessionLimit(SessionTimeLimitMinute);
-            ShowProcesses();
-            StartTick();
+           // ChangeTotalLimit(TotalTimeLimitMinute);
+            //ChangeSessionLimit(SessionTimeLimitMinute);
+           // ShowProcesses();
+            StartUpdate();
             StartAutoSaveTick();
-            //AsyncLogURL();
+           // AsyncLogURL();
         }
 
-        private void StartTick()
+        private void StartUpdate()
         {
             var timer = new System.Windows.Threading.DispatcherTimer();
             timer.Interval = new TimeSpan(0, 0, TICKSECONDS);
@@ -70,14 +74,14 @@ namespace ChattingHabit
         private async void Update(object sender, EventArgs e)
         {
             ShowClock();
-            IfTimeOverResetUsedTime();
-            _processCollection.Tick();
+            //IfTimeOverResetUsedTime();
+            //_processCollection.Tick();
             //_webPageMonitor.Tick();
 
-            ManagingProcessInfoText.Text = _processCollection.GetProcessesInfo();
+            //ManagingProcessInfoText.Text = _processCollection.GetProcessesInfo();
             
             //걍 불러버려
-            OnSyncTestButtonDown(null, null);
+            GetUrlAndBlockAsync();
         }
 
         private void InitSounds()
@@ -87,6 +91,7 @@ namespace ChattingHabit
             //_timeOverSound.Load();
         }
 
+        /*
         public void OnClick_ChangeTotalLimitButton(object sender, RoutedEventArgs e)
         {
             if (TryGetNumber(TotalLimitText.Text, out var minute))
@@ -101,8 +106,9 @@ namespace ChattingHabit
             {
                 ChangeSessionLimit(minute);
             }
-        }
+        }*/
 
+        /*
         private void OnClick_ChangeResetTime(object sender, RoutedEventArgs e)
         {
             if (TryGetNumber(ResetHourText.Text, out var hour) && TryGetNumber(ResetMinText.Text, out var min) && hour <= 24 && min <= 60)
@@ -116,6 +122,7 @@ namespace ChattingHabit
                 EventManager.ShowLogMessage($"리셋 시간이 변경되었습니다. {_nextResetTime.ToLongTimeString()}");
             }
         }
+        */
 
         public static bool IsValidProcessName(string processName)
         {
@@ -123,11 +130,14 @@ namespace ChattingHabit
             return processes.Any(x => x.ProcessName == processName);
         }
         
+        /*
         private void ChangeFeedBackBoxText(string messeage)
         {
             FeedBackText.Text = messeage;
         }
+        */
 
+        /*
         private void ChangeSessionLimit(int minute)
         {
             SessionTimeLimitMinute = minute;
@@ -143,11 +153,13 @@ namespace ChattingHabit
             TotalLimitText.Text = minute.ToString();
             EventManager.ShowLogMessage($"하루 사용시간이 {minute} 분으로 변경되었습니다!");
         }
+        */
 
         private void ChattingInfoText_Copy_TextChanged(object sender, TextChangedEventArgs e)
         {
         }
 
+        /*
         private void IfTimeOverResetUsedTime()
         {
             if (DateTime.Now >= _nextResetTime)
@@ -156,7 +168,7 @@ namespace ChattingHabit
                 _nextResetTime = _nextResetTime + new TimeSpan(1, 0, 0, 0);
                 EventManager.ShowLogMessage("사용량이 리셋 되었습니다!");
             }
-        }
+        }*/
 
         private void LoadMonitoringProcesses()
         {
@@ -178,6 +190,7 @@ namespace ChattingHabit
             }
         }
 
+        /*
         private void LoadSystemSetting()
         {
             SystemSettingSaveData systemSettingSaveData;
@@ -197,6 +210,7 @@ namespace ChattingHabit
             ResetHourText.Text = _nextResetTime.Hour.ToString();
             ResetMinText.Text = _nextResetTime.Minute.ToString();
         }
+        */
 
         private void ManagingProcessInfoText_TextChanged(object sender, TextChangedEventArgs e)
         {
@@ -235,6 +249,7 @@ namespace ChattingHabit
             //ManagingProcessInfoText.Text = DateTime.Now.ToLongTimeString();
         }
 
+        /*
         private void ShowProcesses()
         {
             var processes = Process.GetProcesses().OrderBy(x => x.ProcessName).ToArray();
@@ -245,7 +260,7 @@ namespace ChattingHabit
             {
                 listBox.Items.Add(new ListBoxElem {Name = process.ProcessName});
             }
-        }
+        }*/
 
         private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
@@ -264,8 +279,7 @@ namespace ChattingHabit
             return false;
         }
 
-        public const int TICKSECONDS = 3;
-        private const string SaveFileName = "ChattingHabitSave.Json";
+       
         
         private async void ButtonClick(object sender, RoutedEventArgs e)
         {
@@ -303,10 +317,10 @@ namespace ChattingHabit
         */
 
 
-        private async void OnSyncTestButtonDown(object sender, RoutedEventArgs e)
+        private async void GetUrlAndBlockAsync()
         {
             // modify UI object in UI thread
-            AsyncTestText.Text = "started";
+            AsyncTestText.Text = "...사이트확인중...";
 
             // run a method in another thread
            var task = await Task<string>.Run( () => _webPageMonitor.GetFocusedChromeURLAsync());
@@ -314,8 +328,24 @@ namespace ChattingHabit
 
             // modify UI object in UI thread
             AsyncTestText.Text = task;
+            if (AsyncTestText.Text.Contains("dcinside.com"))
+            {
+                //크롬 창 닫기
+                SendKeys.SendWait("^w");
+                AsyncTestText.Text = "어딜 감히!...dcinside.com 닫음!!";
+            }
+            if (AsyncTestText.Text.Contains("ruliweb.com"))
+            {
+                //크롬 창 닫기
+                SendKeys.SendWait("^w");
+                AsyncTestText.Text = "어딜 감히!...ruliweb.com 척살!!";
+            }
         }
 
+        private void OnClick_ChangeResetTime(object sender, RoutedEventArgs e)
+        {
+
+        }
     }
 
 
