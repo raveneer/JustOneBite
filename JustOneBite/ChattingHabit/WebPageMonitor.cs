@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Threading.Tasks;
 using System.Windows.Automation;
 
 namespace ChattingHabit
@@ -30,6 +31,30 @@ namespace ChattingHabit
                 if (!string.IsNullOrWhiteSpace(GetProcessURL(chrome)))
                 {
                     return GetProcessURL(chrome);
+                }
+            }
+            return "";
+        }
+
+        /// <summary>
+        /// 이 연산은 상당히 무거우므로 자주 돌려서는 안됨.
+        /// </summary>
+        public async Task<string> GetFocusedChromeURLAsync()
+        {
+            Process[] procsChrome = Process.GetProcessesByName("chrome");
+            foreach (Process chrome in procsChrome)
+            {
+                if (!string.IsNullOrWhiteSpace(GetProcessURL(chrome)))
+                {
+                    /*var task1 = Task.Run(() => LongCalcAsync(10));
+                    // task1이 끝나길 기다렸다가 끝나면 결과치를 sum에 할당
+                    int sum = await task1;*/
+
+                    var task1 = Task.Run(() => GetProcessURL(chrome));
+
+                    // task1이 끝나길 기다렸다가 끝나면 결과치를 sum에 할당
+                    string result = await task1;
+                    return result;
                 }
             }
             return "";
