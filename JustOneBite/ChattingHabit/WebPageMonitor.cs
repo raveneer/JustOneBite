@@ -22,7 +22,7 @@ namespace ChattingHabit
         /// <summary>
         /// 이 연산은 상당히 무거우므로 자주 돌려서는 안됨.
         /// </summary>
-        private string GetFocusedChromeURL()
+        public string GetFocusedChromeURL()
         {
             Process[] procsChrome = Process.GetProcessesByName("chrome");
             foreach (Process chrome in procsChrome)

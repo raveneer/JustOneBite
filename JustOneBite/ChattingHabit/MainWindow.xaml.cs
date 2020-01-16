@@ -106,12 +106,14 @@ namespace ChattingHabit
             return processes.Any(x => x.ProcessName == processName);
         }
 
+        //메인 루프.
         private void Update(object sender, EventArgs e)
         {
             ShowClock();
             IfTimeOverResetUsedTime();
             _processCollection.Tick();
-            _webPageMonitor.Tick();
+            //_webPageMonitor.Tick();
+            ChromePagesText.Text = _webPageMonitor.GetFocusedChromeURL();
             ManagingProcessInfoText.Text = _processCollection.GetProcessesInfo();
         }
 
