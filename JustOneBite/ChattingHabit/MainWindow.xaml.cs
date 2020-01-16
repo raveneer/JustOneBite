@@ -75,6 +75,9 @@ namespace ChattingHabit
             //_webPageMonitor.Tick();
 
             ManagingProcessInfoText.Text = _processCollection.GetProcessesInfo();
+            
+            //걍 불러버려
+            OnSyncTestButtonDown(null, null);
         }
 
         private void InitSounds()
@@ -119,20 +122,7 @@ namespace ChattingHabit
             var processes = Process.GetProcesses();
             return processes.Any(x => x.ProcessName == processName);
         }
-
-        private void AsyncLogURL()
-        {
-            while (true)
-            {
-                /*ChromePagesText.Dispatcher.Invoke(
-                                                  System.Windows.Threading.DispatcherPriority.Normal,
-                                                  new Action(
-                                                             delegate { ChromePagesText.Text = _webPageMonitor.GetFocusedChromeURL(); }
-                                                            ));*/
-                Thread.Sleep(3000);
-            }
-        }
-
+        
         private void ChangeFeedBackBoxText(string messeage)
         {
             FeedBackText.Text = messeage;
