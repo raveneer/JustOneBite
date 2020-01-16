@@ -55,9 +55,9 @@ namespace ChattingHabit
 
         private void InitSounds()
         {
-            FileStream timeOverSoStream = File.Open(@"TimeOver.wav", FileMode.Open);
-            _timeOverSound = new SoundPlayer(timeOverSoStream);
-            _timeOverSound.Load();
+            //FileStream timeOverSoStream = File.Open(@"TimeOver.wav", FileMode.Open);
+            //_timeOverSound = new SoundPlayer(timeOverSoStream);
+            //_timeOverSound.Load();
         }
 
         private void LoadSystemSetting()
