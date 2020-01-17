@@ -36,6 +36,9 @@ namespace ChattingHabit
         private readonly WebPageMonitor _webPageMonitor = new WebPageMonitor();
         public static int BaseMethodsUpdateSecPerLoop = 1;
         private static string SaveFileName = "ChattingHabitSave.Json";
+        private bool _isPomodoroRunning;
+        public int SiteMonitorSecPerLoop = 5;
+        private TimeSpan _pomodoroRestTime;
 
         public MainWindow()
         {
@@ -64,10 +67,11 @@ namespace ChattingHabit
         {
             var timer = new System.Windows.Threading.DispatcherTimer();
             timer.Interval = new TimeSpan(0, 0, SiteMonitorSecPerLoop);
-            timer.Tick += (sender, args) => { GetUrlAndBlockAsync(); };
+            timer.Tick += (sender, args) =>
+            {
+                 GetUrlAndBlockAsync();
+            };
         }
-
-        public int SiteMonitorSecPerLoop = 5;
 
         /// <summary>
         /// 가벼운 연산들. 자주 돌린다.
@@ -78,11 +82,19 @@ namespace ChattingHabit
             //IfTimeOverResetUsedTime();
             //_processCollection.Tick();
             //_webPageMonitor.Tick();
-
             //ManagingProcessInfoText.Text = _processCollection.GetProcessesInfo();
-
             //걍 불러버려
             GetUrlAndBlockAsync();
+
+            if (_isPomodoroRunning)
+            {
+                _pomodoroRestTime -= TimeSpan.FromSeconds(BaseMethodsUpdateSecPerLoop);
+                LogText.Text = $"{_pomodoroRestTime.Minutes} : {_pomodoroRestTime.Seconds}";
+                if (_pomodoroRestTime <= TimeSpan.Zero)
+                {
+                    StopPomodoro();
+                }
+            }
         }
 
 
@@ -94,76 +106,153 @@ namespace ChattingHabit
             autoSaveTimer.Start();
         }
 
-
         private void InitSounds()
         {
             //FileStream timeOverSoStream = File.Open(@"TimeOver.wav", FileMode.Open);
             //_timeOverSound = new SoundPlayer(timeOverSoStream);
             //_timeOverSound.Load();
         }
-
-        /*
-        public void OnClick_ChangeTotalLimitButton(object sender, RoutedEventArgs e)
-        {
-            if (TryGetNumber(TotalLimitText.Text, out var minute))
-            {
-                ChangeTotalLimit(minute);
-            }
-        }
-
-        private void OnClick_ChangeSessionLimitButton(object sender, RoutedEventArgs e)
-        {
-            if (TryGetNumber(SessionLimitText.Text, out var minute))
-            {
-                ChangeSessionLimit(minute);
-            }
-        }*/
-
-        /*
-        private void OnClick_ChangeResetTime(object sender, RoutedEventArgs e)
-        {
-            if (TryGetNumber(ResetHourText.Text, out var hour) && TryGetNumber(ResetMinText.Text, out var min) && hour <= 24 && min <= 60)
-            {
-                var resetTime = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, hour, min, DateTime.Now.Second);
-                if (resetTime < DateTime.Now)
-                {
-                    resetTime += new TimeSpan(1, 0, 0, 0);
-                }
-                _nextResetTime = resetTime;
-                EventManager.ShowLogMessage($"리셋 시간이 변경되었습니다. {_nextResetTime.ToLongTimeString()}");
-            }
-        }
-        */
-
-        /*
-        public static bool IsValidProcessName(string processName)
-        {
-            var processes = Process.GetProcesses();
-            return processes.Any(x => x.ProcessName == processName);
-        }*/
         
-
-        /*
-        private void ChangeSessionLimit(int minute)
+        private void SaveDataToFile()
         {
-            SessionTimeLimitMinute = minute;
-            _processCollection.ChangeAllSessionTimeLimit(minute);
-            SessionLimitText.Text = minute.ToString();
-            EventManager.ShowLogMessage($"1회 사용시간이 {minute}분으로 변경되었습니다!");
+            SaveProcessCollection();
+            SaveSystemData();
         }
 
-        private void ChangeTotalLimit(int minute)
+        private void SaveProcessCollection()
         {
-            TotalTimeLimitMinute = minute;
-            _processCollection.ChangeAllTotalTimeLimit(minute);
-            TotalLimitText.Text = minute.ToString();
-            EventManager.ShowLogMessage($"하루 사용시간이 {minute} 분으로 변경되었습니다!");
+            using (var stream = new StreamWriter(File.Open(_saveFilePath, FileMode.Create)))
+            {
+                var dataJson = JsonConvert.SerializeObject(_processCollection, Formatting.Indented);
+                stream.Write(dataJson);
+            }
+        }
+
+        private void SaveSystemData()
+        {
+            using (var stream = new StreamWriter(File.Open(_systemSaveFilePath, FileMode.Create)))
+            {
+                var systemSaveData = new SystemSettingSaveData();
+                systemSaveData.TotalTimeLimitMinute = TotalTimeLimitMinute;
+                systemSaveData.SessionTimeLimitMinute = SessionTimeLimitMinute;
+                systemSaveData.NextResetTime = _nextResetTime;
+                var dataJson = JsonConvert.SerializeObject(systemSaveData, Formatting.Indented);
+                stream.Write(dataJson);
+            }
+        }
+
+        private void ShowClock()
+        {
+            ManagingProcessInfoText.Text = DateTime.Now.ToLongTimeString();
+            LogText.Text = $"{_pomodoroRestTime.Minutes} : {_pomodoroRestTime.Seconds}";
+        }
+
+        private async void GetUrlAndBlockAsync()
+        {
+            //뽀모도로가 아닐때는 돌리지 아니한다.
+            if (!_isPomodoroRunning)
+            {
+                AsyncTestText.Text = "쉬는 시간";
+                return;
+            }
+
+            // modify UI object in UI thread
+            AsyncTestText.Text = "...사이트확인중...";
+
+            // run a method in another thread
+           var task = await Task<string>.Run( () => _webPageMonitor.GetFocusedChromeURLAsync());
+            // <<method execution is finished here>>
+
+            // modify UI object in UI thread
+            AsyncTestText.Text = task;
+            if (AsyncTestText.Text.Contains("dcinside.com"))
+            {
+                //크롬 창 닫기
+                SendKeys.SendWait("^w");
+                AsyncTestText.Text = "어딜 감히!...dcinside.com 닫음!!";
+            }
+            if (AsyncTestText.Text.Contains("ruliweb.com"))
+            {
+                //크롬 창 닫기
+                SendKeys.SendWait("^w");
+                AsyncTestText.Text = "어딜 감히!...ruliweb.com 척살!!";
+            }
+        }
+        
+        private void OnClick_PomodoroButton(object sender, RoutedEventArgs e)
+        {
+            if (_isPomodoroRunning)
+            {
+                StopPomodoro();
+            }
+            else
+            {
+                StartPomodoro();
+            }
+        }
+
+
+        private void StopPomodoro()
+        {
+            EventManager.ShowLogMessage("뽀모도로 종료");
+            _isPomodoroRunning = false;
+        }
+
+
+        private void StartPomodoro()
+        {
+            EventManager.ShowLogMessage("뽀모도로 시작");
+            _isPomodoroRunning = true;
+            _pomodoroRestTime = TimeSpan.FromMinutes(25);
+        }
+
+        private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+        }
+
+        private bool TryGetNumber(string text, out int number)
+        {
+            if (!string.IsNullOrEmpty(text) && text.All(char.IsNumber) && int.Parse(text) >= 1)
+            {
+                number = int.Parse(text);
+                return true;
+            }
+
+            EventManager.ShowLogMessage("잘못된 입력입니다. 1 이상 의 숫자를 넣어주세요.");
+            number = 0;
+            return false;
+        }
+
+
+
+        /*private async void OnSyncTestButtonDown(object sender, RoutedEventArgs e)
+        {
+            // modify UI object in UI thread
+            AsyncTestText.Text = "started";
+
+            // run a method in another thread
+            await Task.Run(() => HeavyMethod(AsyncTestText));
+            // <<method execution is finished here>>
+
+            // modify UI object in UI thread
+            AsyncTestText.Text = "done";
         }
         */
 
-        private void ChattingInfoText_Copy_TextChanged(object sender, TextChangedEventArgs e)
+
+        /*
+        private void ShowProcesses()
         {
-        }
+            var processes = Process.GetProcesses().OrderBy(x => x.ProcessName).ToArray();
+            var listBox = new ListBox();
+            ProcessList.Content = listBox;
+            listBox.DisplayMemberPath = "Name";
+            foreach (var process in processes)
+            {
+                listBox.Items.Add(new ListBoxElem {Name = process.ProcessName});
+            }
+        }*/
+
 
         /*
         private void IfTimeOverResetUsedTime()
@@ -219,140 +308,67 @@ namespace ChattingHabit
         }
         */
 
-        private void ManagingProcessInfoText_TextChanged(object sender, TextChangedEventArgs e)
-        {
-        }
-
-        private void SaveDataToFile()
-        {
-            SaveProcessCollection();
-            SaveSystemData();
-        }
-
-        private void SaveProcessCollection()
-        {
-            using (var stream = new StreamWriter(File.Open(_saveFilePath, FileMode.Create)))
-            {
-                var dataJson = JsonConvert.SerializeObject(_processCollection, Formatting.Indented);
-                stream.Write(dataJson);
-            }
-        }
-
-        private void SaveSystemData()
-        {
-            using (var stream = new StreamWriter(File.Open(_systemSaveFilePath, FileMode.Create)))
-            {
-                var systemSaveData = new SystemSettingSaveData();
-                systemSaveData.TotalTimeLimitMinute = TotalTimeLimitMinute;
-                systemSaveData.SessionTimeLimitMinute = SessionTimeLimitMinute;
-                systemSaveData.NextResetTime = _nextResetTime;
-                var dataJson = JsonConvert.SerializeObject(systemSaveData, Formatting.Indented);
-                stream.Write(dataJson);
-            }
-        }
-
-        private void ShowClock()
-        {
-            ManagingProcessInfoText.Text = DateTime.Now.ToLongTimeString();
-        }
 
         /*
-        private void ShowProcesses()
+        public void OnClick_ChangeTotalLimitButton(object sender, RoutedEventArgs e)
         {
-            var processes = Process.GetProcesses().OrderBy(x => x.ProcessName).ToArray();
-            var listBox = new ListBox();
-            ProcessList.Content = listBox;
-            listBox.DisplayMemberPath = "Name";
-            foreach (var process in processes)
+            if (TryGetNumber(TotalLimitText.Text, out var minute))
             {
-                listBox.Items.Add(new ListBoxElem {Name = process.ProcessName});
+                ChangeTotalLimit(minute);
+            }
+        }
+
+        private void OnClick_ChangeSessionLimitButton(object sender, RoutedEventArgs e)
+        {
+            if (TryGetNumber(SessionLimitText.Text, out var minute))
+            {
+                ChangeSessionLimit(minute);
             }
         }*/
 
-        private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
+        /*
+        private void OnClick_ChangeResetTime(object sender, RoutedEventArgs e)
         {
-        }
-
-        private bool TryGetNumber(string text, out int number)
-        {
-            if (!string.IsNullOrEmpty(text) && text.All(char.IsNumber) && int.Parse(text) >= 1)
+            if (TryGetNumber(ResetHourText.Text, out var hour) && TryGetNumber(ResetMinText.Text, out var min) && hour <= 24 && min <= 60)
             {
-                number = int.Parse(text);
-                return true;
-            }
-
-            EventManager.ShowLogMessage("잘못된 입력입니다. 1 이상 의 숫자를 넣어주세요.");
-            number = 0;
-            return false;
-        }
-
-       
-        
-        private async void ButtonClick(object sender, RoutedEventArgs e)
-        {
-            
-        }
-
-        // This is a thread-safe method. You can run it in any thread
-        internal void HeavyMethod(TextBlock textBlock)
-        {
-            for (int i = 0; i < 10; i++)
-            {
-                textBlock.Dispatcher.Invoke(() =>
+                var resetTime = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, hour, min, DateTime.Now.Second);
+                if (resetTime < DateTime.Now)
                 {
-                    // UI operation goes inside of Invoke
-                    textBlock.Text += ".";
-                });
-
-                // CPU-bound or I/O-bound operation goes outside of Invoke
-                Thread.Sleep(51);
+                    resetTime += new TimeSpan(1, 0, 0, 0);
+                }
+                _nextResetTime = resetTime;
+                EventManager.ShowLogMessage($"리셋 시간이 변경되었습니다. {_nextResetTime.ToLongTimeString()}");
             }
         }
+        */
 
-        /*private async void OnSyncTestButtonDown(object sender, RoutedEventArgs e)
+        /*
+        public static bool IsValidProcessName(string processName)
         {
-            // modify UI object in UI thread
-            AsyncTestText.Text = "started";
+            var processes = Process.GetProcesses();
+            return processes.Any(x => x.ProcessName == processName);
+        }*/
 
-            // run a method in another thread
-            await Task.Run(() => HeavyMethod(AsyncTestText));
-            // <<method execution is finished here>>
 
-            // modify UI object in UI thread
-            AsyncTestText.Text = "done";
+        /*
+        private void ChangeSessionLimit(int minute)
+        {
+            SessionTimeLimitMinute = minute;
+            _processCollection.ChangeAllSessionTimeLimit(minute);
+            SessionLimitText.Text = minute.ToString();
+            EventManager.ShowLogMessage($"1회 사용시간이 {minute}분으로 변경되었습니다!");
+        }
+
+        private void ChangeTotalLimit(int minute)
+        {
+            TotalTimeLimitMinute = minute;
+            _processCollection.ChangeAllTotalTimeLimit(minute);
+            TotalLimitText.Text = minute.ToString();
+            EventManager.ShowLogMessage($"하루 사용시간이 {minute} 분으로 변경되었습니다!");
         }
         */
 
 
-        private async void GetUrlAndBlockAsync()
-        {
-            // modify UI object in UI thread
-            AsyncTestText.Text = "...사이트확인중...";
-
-            // run a method in another thread
-           var task = await Task<string>.Run( () => _webPageMonitor.GetFocusedChromeURLAsync());
-            // <<method execution is finished here>>
-
-            // modify UI object in UI thread
-            AsyncTestText.Text = task;
-            if (AsyncTestText.Text.Contains("dcinside.com"))
-            {
-                //크롬 창 닫기
-                SendKeys.SendWait("^w");
-                AsyncTestText.Text = "어딜 감히!...dcinside.com 닫음!!";
-            }
-            if (AsyncTestText.Text.Contains("ruliweb.com"))
-            {
-                //크롬 창 닫기
-                SendKeys.SendWait("^w");
-                AsyncTestText.Text = "어딜 감히!...ruliweb.com 척살!!";
-            }
-        }
-
-        private void OnClick_ChangeResetTime(object sender, RoutedEventArgs e)
-        {
-
-        }
     }
 
 
