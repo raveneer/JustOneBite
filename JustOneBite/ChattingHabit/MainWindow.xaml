@@ -5,16 +5,26 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ChattingHabit"
         mc:Ignorable="d"
-        Title="MainWindow" Height="300" Width="500">
+        Title="MainWindow" Height="208.333" Width="201.667">
     <Grid>
-        <Button x:Name="PomodoroButton" Content="Pomodoro" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="203" Height="92" Click="OnClick_PomodoroButton" Foreground="{DynamicResource {x:Static SystemColors.ActiveCaptionTextBrushKey}}" FontFamily="Lobster" FontSize="48" />
-        <TextBox x:Name="LogText" HorizontalAlignment="Left" Height="131" Margin="10,107,0,0" TextWrapping="Wrap"  IsReadOnly ="True" Text="logText" VerticalAlignment="Top" Width="201" RenderTransformOrigin="0.494,0.502" >
+        <Grid.Background>
+            <LinearGradientBrush EndPoint="0.5,1" MappingMode="RelativeToBoundingBox" StartPoint="0.5,0">
+                <GradientStop Color="Black" Offset="1"/>
+                <GradientStop Color="#FFF90707"/>
+            </LinearGradientBrush>
+        </Grid.Background>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+            <ColumnDefinition Width="0*"/>
+        </Grid.ColumnDefinitions>
+        <Button x:Name="PomodoroButton" Content="START" HorizontalAlignment="Left" Margin="22,19,0,0" VerticalAlignment="Top" Width="150" Height="80" Click="OnClick_PomodoroButton" Foreground="{DynamicResource {x:Static SystemColors.ActiveCaptionTextBrushKey}}" FontFamily="Microsoft YaHei UI" FontSize="40" Background="#FFDDDDDD" />
+        <TextBox x:Name="LogText" HorizontalAlignment="Left" Height="40" Margin="22,112,0,0" TextWrapping="Wrap"  IsReadOnly ="True" Text="logText" VerticalAlignment="Top" Width="150" RenderTransformOrigin="0.494,0.502" >
             <TextBox.RenderTransform>
                 <TransformGroup>
                     <ScaleTransform/>
-                    <SkewTransform AngleY="-0.387"/>
+                    <SkewTransform AngleY="0"/>
                     <RotateTransform/>
-                    <TranslateTransform Y="-0.487"/>
+                    <TranslateTransform Y="0"/>
                 </TransformGroup>
             </TextBox.RenderTransform>
         </TextBox>

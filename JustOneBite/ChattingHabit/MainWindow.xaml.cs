@@ -22,6 +22,7 @@ namespace ChattingHabit
     /// </summary>
     public partial class MainWindow : Window
     {
+        private static int DefaultPomodoroSec = 25*60;
         public static int AutoSaveTermSec = 10;
         public static int BaseMethodsUpdateSecPerLoop = 1;
         public static int SessionTimeLimitMinute;
@@ -36,15 +37,16 @@ namespace ChattingHabit
         private ProcessCollection _processCollection;
         private readonly string _saveFilePath = AppDomain.CurrentDomain.BaseDirectory + SaveFileName;
         private readonly string _systemSaveFilePath = AppDomain.CurrentDomain.BaseDirectory + "ChattingHabitSystemSave.Json";
-        private MediaPlayer mediaPlayer = new MediaPlayer();
+        private SoundPlayer _timeOverSound;
+        private SoundPlayer _startSound;
         private readonly WebPageMonitor _webPageMonitor = new WebPageMonitor();
-
+        
         public MainWindow()
         {
             EventManager.ShowLogMessage += msg => LogText.Text = msg;
 
-            //InitSounds();
             InitializeComponent(); // WPF 자체함수. 건드리지 말 것.
+            InitSounds();
             StartUpdateEventLoop();
             SiteMonitorLoop();
             StartAutoSaveLoop();
@@ -70,9 +72,10 @@ namespace ChattingHabit
         private void StartPomodoro()
         {
             _isPomodoroRunning = true;
-            _pomodoroRestTime = TimeSpan.FromSeconds(3);
+            _pomodoroRestTime = TimeSpan.FromSeconds(DefaultPomodoroSec);
             PomodoroButton.Foreground = Brushes.Red;
-            
+            _startSound.Play();
+
             //시작시 1회 돌려준다.
             CheckPomodoroComplete();
         }
@@ -101,8 +104,13 @@ namespace ChattingHabit
         private void InitSounds()
         {
             FileStream timeOverSoStream = File.Open(@"CompleteDing.wav", FileMode.Open);
-            mediaPlayer = new MediaPlayer();
-            mediaPlayer.Open(new Uri(@"CompleteDing.wav"));
+            _timeOverSound = new SoundPlayer(timeOverSoStream);
+            _timeOverSound.Load();
+
+
+            FileStream startSoStream = File.Open(@"Start.wav", FileMode.Open);
+            _startSound = new SoundPlayer(startSoStream);
+            _startSound.Load();
         }
 
         private void OnClick_PomodoroButton(object sender, RoutedEventArgs e)
@@ -140,7 +148,7 @@ namespace ChattingHabit
 
         private void CompletePomodoro()
         {
-            mediaPlayer.Play();
+            _timeOverSound.Play();
             _completePomodoroToday += 1;
         }
 
