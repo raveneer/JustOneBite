@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ChattingHabit"
         mc:Ignorable="d"
-        Title="MainWindow" Height="208.333" Width="201.667">
+        Title="MainWindow" Height="208.333" Width="201.667" Topmost="True">
     <Grid>
         <Grid.Background>
             <LinearGradientBrush EndPoint="0.5,1" MappingMode="RelativeToBoundingBox" StartPoint="0.5,0">
@@ -30,3 +30,5 @@
         </TextBox>
     </Grid>
 </Window>
+    
+    
