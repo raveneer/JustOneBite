@@ -7,9 +7,16 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="300" Width="500">
     <Grid>
-        <TextBox x:Name="ManagingProcessInfoText" HorizontalAlignment="Left" Height="228" Margin="10,10,0,0" TextWrapping="Wrap"  IsReadOnly ="True" Text="관리중인 프로그램들&#xD;&#xA;&#xD;&#xA;KakaoTalk.exe (사용중)&#xD;&#xA;1회 사용한도 : 5분 (현재 4분 44초 사용중)&#xD;&#xA;하루 사용한도 : 60분 (현재 55분 55초 사용중)&#xD;&#xA;포커스된 횟수 : xx 회&#xD;&#xA;입력한 문자 : xx 자&#xD;&#xA;&#xD;&#xA;Slack.exe (종료된)&#xD;&#xA;1회 사용한도 : 5분 (종료된)&#xD;&#xA;하루 사용한도 : 60분 (현재 55분 55초 사용중)&#xD;&#xA;포커스된 횟수 : xx 회&#xD;&#xA;입력한 문자 : xx 자" VerticalAlignment="Top" Width="273" RenderTransformOrigin="0.494,0.502" />
-        <TextBox x:Name="AsyncTestText" HorizontalAlignment="Left" Height="64" Margin="300,10,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="146"  Background="White" TextAlignment="Center" IsReadOnly ="True" />
-        <Button x:Name="PomodoroButton" Content="뽀모도로" HorizontalAlignment="Left" Margin="300,79,0,0" VerticalAlignment="Top" Width="146" Height="23" Click="OnClick_PomodoroButton" />
-        <TextBox x:Name="LogText" HorizontalAlignment="Left" Height="131" Margin="288,107,0,0" TextWrapping="Wrap"  IsReadOnly ="True" Text="logText" VerticalAlignment="Top" Width="179" RenderTransformOrigin="0.494,0.502" />
+        <Button x:Name="PomodoroButton" Content="Pomodoro" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="203" Height="92" Click="OnClick_PomodoroButton" Foreground="{DynamicResource {x:Static SystemColors.ActiveCaptionTextBrushKey}}" FontFamily="Lobster" FontSize="48" />
+        <TextBox x:Name="LogText" HorizontalAlignment="Left" Height="131" Margin="10,107,0,0" TextWrapping="Wrap"  IsReadOnly ="True" Text="logText" VerticalAlignment="Top" Width="201" RenderTransformOrigin="0.494,0.502" >
+            <TextBox.RenderTransform>
+                <TransformGroup>
+                    <ScaleTransform/>
+                    <SkewTransform AngleY="-0.387"/>
+                    <RotateTransform/>
+                    <TranslateTransform Y="-0.487"/>
+                </TransformGroup>
+            </TextBox.RenderTransform>
+        </TextBox>
     </Grid>
 </Window>

@@ -1,15 +1,13 @@
 ﻿using System;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Media;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Forms;
+using System.Windows.Media;
 using Newtonsoft.Json;
-using ListBox = System.Windows.Controls.ListBox;
 
 namespace ChattingHabit
 {
@@ -25,31 +23,32 @@ namespace ChattingHabit
     public partial class MainWindow : Window
     {
         public static int AutoSaveTermSec = 10;
+        public static int BaseMethodsUpdateSecPerLoop = 1;
         public static int SessionTimeLimitMinute;
         public static int TotalTimeLimitMinute;
+        private static readonly string SaveFileName = "ChattingHabitSave.Json";
+        public int SiteMonitorSecPerLoop = 5;
+        private int _completePomodoroToday;
         private bool _isFirstRunningInDay;
+        private bool _isPomodoroRunning;
         private DateTime _nextResetTime;
+        private TimeSpan _pomodoroRestTime;
         private ProcessCollection _processCollection;
         private readonly string _saveFilePath = AppDomain.CurrentDomain.BaseDirectory + SaveFileName;
         private readonly string _systemSaveFilePath = AppDomain.CurrentDomain.BaseDirectory + "ChattingHabitSystemSave.Json";
-        private readonly SoundPlayer _timeOverSound = new SoundPlayer();
+        private MediaPlayer mediaPlayer = new MediaPlayer();
         private readonly WebPageMonitor _webPageMonitor = new WebPageMonitor();
-        public static int BaseMethodsUpdateSecPerLoop = 1;
-        private static string SaveFileName = "ChattingHabitSave.Json";
-        private bool _isPomodoroRunning;
-        public int SiteMonitorSecPerLoop = 5;
-        private TimeSpan _pomodoroRestTime;
 
         public MainWindow()
         {
-            EventManager.ShowLogMessage += msg => LogText.Text = msg; ;
-            EventManager.PlayTimeOverSound += () => _timeOverSound.Play();
+            EventManager.ShowLogMessage += msg => LogText.Text = msg;
 
             //InitSounds();
             InitializeComponent(); // WPF 자체함수. 건드리지 말 것.
             StartUpdateEventLoop();
             SiteMonitorLoop();
             StartAutoSaveLoop();
+            StopPomodoro();
         }
 
         private void StartUpdateEventLoop()
@@ -59,44 +58,6 @@ namespace ChattingHabit
             timer.Tick += BaseMethodsUpdate;
             timer.Start();
         }
-        
-        /// <summary>
-        /// 무거운 연산이므로 따로 돌린다. 느리게.
-        /// </summary>
-        private void SiteMonitorLoop()
-        {
-            var timer = new System.Windows.Threading.DispatcherTimer();
-            timer.Interval = new TimeSpan(0, 0, SiteMonitorSecPerLoop);
-            timer.Tick += (sender, args) =>
-            {
-                 GetUrlAndBlockAsync();
-            };
-        }
-
-        /// <summary>
-        /// 가벼운 연산들. 자주 돌린다.
-        /// </summary>
-        private async void BaseMethodsUpdate(object sender, EventArgs e)
-        {
-            ShowClock();
-            //IfTimeOverResetUsedTime();
-            //_processCollection.Tick();
-            //_webPageMonitor.Tick();
-            //ManagingProcessInfoText.Text = _processCollection.GetProcessesInfo();
-            //걍 불러버려
-            GetUrlAndBlockAsync();
-
-            if (_isPomodoroRunning)
-            {
-                _pomodoroRestTime -= TimeSpan.FromSeconds(BaseMethodsUpdateSecPerLoop);
-                LogText.Text = $"{_pomodoroRestTime.Minutes} : {_pomodoroRestTime.Seconds}";
-                if (_pomodoroRestTime <= TimeSpan.Zero)
-                {
-                    StopPomodoro();
-                }
-            }
-        }
-
 
         private void StartAutoSaveLoop()
         {
@@ -106,13 +67,99 @@ namespace ChattingHabit
             autoSaveTimer.Start();
         }
 
+        private void StartPomodoro()
+        {
+            _isPomodoroRunning = true;
+            _pomodoroRestTime = TimeSpan.FromSeconds(3);
+            PomodoroButton.Foreground = Brushes.Red;
+            
+            //시작시 1회 돌려준다.
+            CheckPomodoroComplete();
+        }
+
+        /// <summary>
+        ///     가벼운 연산들. 자주 돌린다.
+        /// </summary>
+        private async void BaseMethodsUpdate(object sender, EventArgs e)
+        {
+            //IfTimeOverResetUsedTime();
+            //_processCollection.Tick();
+            //_webPageMonitor.Tick();
+            //ManagingProcessInfoText.Text = _processCollection.GetProcessesInfo();
+            //걍 불러버려
+            GetUrlAndBlockAsync();
+            CheckPomodoroComplete();
+            RefreshTodayState();
+
+        }
+
+        private void RefreshTodayState()
+        {
+            LogText.Text = $"완료한 뽀모도로 {_completePomodoroToday}회";
+        }
+
         private void InitSounds()
         {
-            //FileStream timeOverSoStream = File.Open(@"TimeOver.wav", FileMode.Open);
-            //_timeOverSound = new SoundPlayer(timeOverSoStream);
-            //_timeOverSound.Load();
+            FileStream timeOverSoStream = File.Open(@"CompleteDing.wav", FileMode.Open);
+            mediaPlayer = new MediaPlayer();
+            mediaPlayer.Open(new Uri(@"CompleteDing.wav"));
         }
-        
+
+        private void OnClick_PomodoroButton(object sender, RoutedEventArgs e)
+        {
+            if (_isPomodoroRunning)
+            {
+                StopPomodoro();
+            }
+            else
+            {
+                StartPomodoro();
+            }
+        }
+
+        private void CheckPomodoroComplete()
+        {
+            if (_isPomodoroRunning)
+            {
+                //뽀모도로 틱 갱신
+                _pomodoroRestTime -= TimeSpan.FromSeconds(BaseMethodsUpdateSecPerLoop);
+                PomodoroButton.Content = $"{_pomodoroRestTime.Minutes} : {_pomodoroRestTime.Seconds}";
+                
+                //달성
+                if (_pomodoroRestTime <= TimeSpan.Zero)
+                {
+                    StopPomodoro();
+                    CompletePomodoro();
+                }
+            }
+            else
+            {
+                LogText.Text = "";
+            }
+        }
+
+        private void CompletePomodoro()
+        {
+            mediaPlayer.Play();
+            _completePomodoroToday += 1;
+        }
+
+        private async void GetUrlAndBlockAsync()
+        {
+            if (!_isPomodoroRunning)
+            {
+                return;
+            }
+
+            var task = await Task.Run(() => _webPageMonitor.GetFocusedChromeURLAsync());
+
+            if (task.Contains("dcinside.com"))
+            {
+                //크롬 창 닫기
+                SendKeys.SendWait("^w");
+            }
+        }
+
         private void SaveDataToFile()
         {
             SaveProcessCollection();
@@ -141,69 +188,21 @@ namespace ChattingHabit
             }
         }
 
-        private void ShowClock()
+        /// <summary>
+        ///     무거운 연산이므로 따로 돌린다. 느리게.
+        /// </summary>
+        private void SiteMonitorLoop()
         {
-            ManagingProcessInfoText.Text = DateTime.Now.ToLongTimeString();
-            LogText.Text = $"{_pomodoroRestTime.Minutes} : {_pomodoroRestTime.Seconds}";
+            var timer = new System.Windows.Threading.DispatcherTimer();
+            timer.Interval = new TimeSpan(0, 0, SiteMonitorSecPerLoop);
+            timer.Tick += (sender, args) => { GetUrlAndBlockAsync(); };
         }
-
-        private async void GetUrlAndBlockAsync()
-        {
-            //뽀모도로가 아닐때는 돌리지 아니한다.
-            if (!_isPomodoroRunning)
-            {
-                AsyncTestText.Text = "쉬는 시간";
-                return;
-            }
-
-            // modify UI object in UI thread
-            AsyncTestText.Text = "...사이트확인중...";
-
-            // run a method in another thread
-           var task = await Task<string>.Run( () => _webPageMonitor.GetFocusedChromeURLAsync());
-            // <<method execution is finished here>>
-
-            // modify UI object in UI thread
-            AsyncTestText.Text = task;
-            if (AsyncTestText.Text.Contains("dcinside.com"))
-            {
-                //크롬 창 닫기
-                SendKeys.SendWait("^w");
-                AsyncTestText.Text = "어딜 감히!...dcinside.com 닫음!!";
-            }
-            if (AsyncTestText.Text.Contains("ruliweb.com"))
-            {
-                //크롬 창 닫기
-                SendKeys.SendWait("^w");
-                AsyncTestText.Text = "어딜 감히!...ruliweb.com 척살!!";
-            }
-        }
-        
-        private void OnClick_PomodoroButton(object sender, RoutedEventArgs e)
-        {
-            if (_isPomodoroRunning)
-            {
-                StopPomodoro();
-            }
-            else
-            {
-                StartPomodoro();
-            }
-        }
-
 
         private void StopPomodoro()
         {
-            EventManager.ShowLogMessage("뽀모도로 종료");
+            PomodoroButton.Content = $"START";
             _isPomodoroRunning = false;
-        }
-
-
-        private void StartPomodoro()
-        {
-            EventManager.ShowLogMessage("뽀모도로 시작");
-            _isPomodoroRunning = true;
-            _pomodoroRestTime = TimeSpan.FromMinutes(25);
+            PomodoroButton.Foreground = Brushes.Black;
         }
 
         private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
@@ -223,8 +222,6 @@ namespace ChattingHabit
             return false;
         }
 
-
-
         /*private async void OnSyncTestButtonDown(object sender, RoutedEventArgs e)
         {
             // modify UI object in UI thread
@@ -239,7 +236,6 @@ namespace ChattingHabit
         }
         */
 
-
         /*
         private void ShowProcesses()
         {
@@ -252,7 +248,6 @@ namespace ChattingHabit
                 listBox.Items.Add(new ListBoxElem {Name = process.ProcessName});
             }
         }*/
-
 
         /*
         private void IfTimeOverResetUsedTime()
@@ -308,7 +303,6 @@ namespace ChattingHabit
         }
         */
 
-
         /*
         public void OnClick_ChangeTotalLimitButton(object sender, RoutedEventArgs e)
         {
@@ -349,7 +343,6 @@ namespace ChattingHabit
             return processes.Any(x => x.ProcessName == processName);
         }*/
 
-
         /*
         private void ChangeSessionLimit(int minute)
         {
@@ -367,10 +360,7 @@ namespace ChattingHabit
             EventManager.ShowLogMessage($"하루 사용시간이 {minute} 분으로 변경되었습니다!");
         }
         */
-
-
     }
-
 
     public class ListBoxElem
     {
