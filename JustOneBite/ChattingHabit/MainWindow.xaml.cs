@@ -40,17 +40,24 @@ namespace ChattingHabit
         private SoundPlayer _timeOverSound;
         private SoundPlayer _startSound;
         private readonly WebPageMonitor _webPageMonitor = new WebPageMonitor();
+        private string[] blockSites;
         
         public MainWindow()
         {
             EventManager.ShowLogMessage += msg => LogText.Text = msg;
 
             InitializeComponent(); // WPF 자체함수. 건드리지 말 것.
+            InitBlockSiteList();
             InitSounds();
             StartUpdateEventLoop();
             SiteMonitorLoop();
             StartAutoSaveLoop();
             StopPomodoro();
+        }
+
+        private void InitBlockSiteList()
+        {
+            blockSites = File.ReadAllLines($"C:\\CSharpProject\\JustOneBite\\JustOneBite\\ChattingHabit\\bin\\Debug/BlockSiteUrl.txt");
         }
 
         private void StartUpdateEventLoop()
@@ -90,7 +97,7 @@ namespace ChattingHabit
             //_webPageMonitor.Tick();
             //ManagingProcessInfoText.Text = _processCollection.GetProcessesInfo();
             //걍 불러버려
-            GetUrlAndBlockAsync();
+            GetUrlAndBlockAsync(blockSites);
             CheckPomodoroComplete();
             RefreshTodayState();
 
@@ -152,8 +159,13 @@ namespace ChattingHabit
             _completePomodoroToday += 1;
         }
 
-        private async void GetUrlAndBlockAsync()
+        private async void GetUrlAndBlockAsync(string[] blockSites)
         {
+            if (!blockSites.Any())
+            {
+                return;
+            }
+
             if (!_isPomodoroRunning)
             {
                 return;
@@ -161,7 +173,7 @@ namespace ChattingHabit
 
             var task = await Task.Run(() => _webPageMonitor.GetFocusedChromeURLAsync());
 
-            if (task.Contains("dcinside.com"))
+            if (blockSites.Any(site => task.Contains(site)))
             {
                 //크롬 창 닫기
                 SendKeys.SendWait("^w");
@@ -203,7 +215,7 @@ namespace ChattingHabit
         {
             var timer = new System.Windows.Threading.DispatcherTimer();
             timer.Interval = new TimeSpan(0, 0, SiteMonitorSecPerLoop);
-            timer.Tick += (sender, args) => { GetUrlAndBlockAsync(); };
+            timer.Tick += (sender, args) => { GetUrlAndBlockAsync(blockSites); };
         }
 
         private void StopPomodoro()
