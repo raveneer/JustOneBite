@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Media;
@@ -7,6 +8,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Forms;
 using System.Windows.Media;
+using System.Windows.Threading;
 using Newtonsoft.Json;
 
 namespace ChattingHabit
@@ -22,47 +24,45 @@ namespace ChattingHabit
     /// </summary>
     public partial class MainWindow : Window
     {
-        private static int DefaultPomodoroSec = 25*60;
         public static int AutoSaveTermSec = 10;
         public static int BaseMethodsUpdateSecPerLoop = 1;
         public static int SessionTimeLimitMinute;
         public static int TotalTimeLimitMinute;
+        private static int PomodoroSec = 5;
         private static readonly string SaveFileName = "ChattingHabitSave.Json";
         public int SiteMonitorSecPerLoop = 5;
         private int _completePomodoroToday;
+        private SoundPlayer _finishSound;
         private bool _isFirstRunningInDay;
         private bool _isPomodoroRunning;
         private DateTime _nextResetTime;
         private TimeSpan _pomodoroRestTime;
         private ProcessCollection _processCollection;
         private readonly string _saveFilePath = AppDomain.CurrentDomain.BaseDirectory + SaveFileName;
-        private readonly string _systemSaveFilePath = AppDomain.CurrentDomain.BaseDirectory + "ChattingHabitSystemSave.Json";
-        private SoundPlayer _timeOverSound;
         private SoundPlayer _startSound;
+        private readonly string _systemSaveFilePath = AppDomain.CurrentDomain.BaseDirectory + "ChattingHabitSystemSave.Json";
         private readonly WebPageMonitor _webPageMonitor = new WebPageMonitor();
         private string[] blockSites;
-        
+
         public MainWindow()
         {
             EventManager.ShowLogMessage += msg => LogText.Text = msg;
 
             InitializeComponent(); // WPF 자체함수. 건드리지 말 것.
             InitBlockSiteList();
+            InitPomodoroSetting();
             InitSounds();
+            LoadPomodoroResult();
             StartUpdateEventLoop();
             SiteMonitorLoop();
             StartAutoSaveLoop();
             StopPomodoro();
         }
 
-        private void InitBlockSiteList()
-        {
-            blockSites = File.ReadAllLines($"C:\\CSharpProject\\JustOneBite\\JustOneBite\\ChattingHabit\\bin\\Debug/BlockSiteUrl.txt");
-        }
 
         private void StartUpdateEventLoop()
         {
-            var timer = new System.Windows.Threading.DispatcherTimer();
+            var timer = new DispatcherTimer();
             timer.Interval = new TimeSpan(0, 0, BaseMethodsUpdateSecPerLoop);
             timer.Tick += BaseMethodsUpdate;
             timer.Start();
@@ -70,7 +70,7 @@ namespace ChattingHabit
 
         private void StartAutoSaveLoop()
         {
-            var autoSaveTimer = new System.Windows.Threading.DispatcherTimer();
+            var autoSaveTimer = new DispatcherTimer();
             autoSaveTimer.Interval = new TimeSpan(0, 0, AutoSaveTermSec);
             autoSaveTimer.Tick += (sender, args) => SaveDataToFile();
             autoSaveTimer.Start();
@@ -79,7 +79,7 @@ namespace ChattingHabit
         private void StartPomodoro()
         {
             _isPomodoroRunning = true;
-            _pomodoroRestTime = TimeSpan.FromSeconds(DefaultPomodoroSec);
+            _pomodoroRestTime = TimeSpan.FromSeconds(PomodoroSec);
             PomodoroButton.Foreground = Brushes.Red;
             _startSound.Play();
 
@@ -100,23 +100,50 @@ namespace ChattingHabit
             GetUrlAndBlockAsync(blockSites);
             CheckPomodoroComplete();
             RefreshTodayState();
-
         }
 
-        private void RefreshTodayState()
+        private void InitPomodoroSetting()
         {
-            LogText.Text = $"완료한 뽀모도로 {_completePomodoroToday}회";
+            string path = "Setting.txt";
+            if (!File.Exists(path))
+            {
+                using (StreamWriter sw = File.AppendText(path))
+                {
+                    sw.WriteLine("Write your pomodoro time sec");
+                    sw.WriteLine("5");
+                }
+            }
+
+            if (int.TryParse(File.ReadAllLines(path)[1], out var sec))
+            {
+                PomodoroSec = sec;
+            }
+            else
+            {
+                PomodoroSec = 25 * 60;
+            }
+        }
+
+        private void InitBlockSiteList()
+        {
+            string path = "BlockSiteUrl.txt";
+            if (!File.Exists(path))
+            {
+                using (StreamWriter sw = File.AppendText(path))
+                {
+                    sw.WriteLine("writeYourBlockSites");
+                    sw.WriteLine("dcinside.com");
+                }
+            }
+
+            blockSites = File.ReadAllLines(path);
         }
 
         private void InitSounds()
         {
-            FileStream timeOverSoStream = File.Open(@"CompleteDing.wav", FileMode.Open);
-            _timeOverSound = new SoundPlayer(timeOverSoStream);
-            _timeOverSound.Load();
-
-
-            FileStream startSoStream = File.Open(@"Start.wav", FileMode.Open);
-            _startSound = new SoundPlayer(startSoStream);
+            _finishSound = new SoundPlayer(Properties.Resources.End);
+            _finishSound.Load();
+            _startSound = new SoundPlayer(Properties.Resources.Start);
             _startSound.Load();
         }
 
@@ -139,7 +166,7 @@ namespace ChattingHabit
                 //뽀모도로 틱 갱신
                 _pomodoroRestTime -= TimeSpan.FromSeconds(BaseMethodsUpdateSecPerLoop);
                 PomodoroButton.Content = $"{_pomodoroRestTime.Minutes} : {_pomodoroRestTime.Seconds}";
-                
+
                 //달성
                 if (_pomodoroRestTime <= TimeSpan.Zero)
                 {
@@ -155,8 +182,9 @@ namespace ChattingHabit
 
         private void CompletePomodoro()
         {
-            _timeOverSound.Play();
+            _finishSound.Play();
             _completePomodoroToday += 1;
+            SavePomodoroResult();
         }
 
         private async void GetUrlAndBlockAsync(string[] blockSites)
@@ -180,10 +208,60 @@ namespace ChattingHabit
             }
         }
 
+        private void LoadPomodoroResult()
+        {
+            if (!File.Exists("SaveData.json"))
+            {
+                _completePomodoroToday = 0;
+                return;
+            }
+
+            var saveData = JsonConvert.DeserializeObject<PomodoroResultSaveData>(File.ReadAllText("SaveData.json"));
+            if (saveData.ResultDictionary.TryGetValue(DateInfo.FromDateTime(DateTime.Now), out var count))
+            {
+                _completePomodoroToday = count;
+            }
+            else
+            {
+                _completePomodoroToday = 0;
+            }
+        }
+
+        private void SavePomodoroResult()
+        {
+            //없으면 만들고 끝냄
+            if (!File.Exists("SaveData.json"))
+            {
+                var stream = File.Create("SaveData.json");
+                stream.Close();
+                var thisSessionSaveData = new PomodoroResultSaveData();
+                thisSessionSaveData.ResultDictionary.Add(DateInfo.FromDateTime(DateTime.Now), _completePomodoroToday );
+                var saveDataString = JsonConvert.SerializeObject(thisSessionSaveData);
+                File.WriteAllText("SaveData.json", saveDataString);
+                return;
+            }
+
+            //파일이 있으면 기존 데이터를 읽어와서 수정사항을 저장함.
+            var saveData = JsonConvert.DeserializeObject<PomodoroResultSaveData>(File.ReadAllText("SaveData.json"));
+            if (saveData.ResultDictionary.ContainsKey(DateInfo.FromDateTime(DateTime.Now)))
+            {
+                saveData.ResultDictionary[DateInfo.FromDateTime(DateTime.Now)] = _completePomodoroToday;
+                var saveDataString = JsonConvert.SerializeObject(saveData);
+                File.WriteAllText("SaveData.json", saveDataString);
+            }
+           
+        }
+
+        private void RefreshTodayState()
+        {
+            LogText.Text = $"완료한 뽀모도로 {_completePomodoroToday}회";
+        }
+
         private void SaveDataToFile()
         {
             SaveProcessCollection();
             SaveSystemData();
+            
         }
 
         private void SaveProcessCollection()
@@ -213,14 +291,14 @@ namespace ChattingHabit
         /// </summary>
         private void SiteMonitorLoop()
         {
-            var timer = new System.Windows.Threading.DispatcherTimer();
+            var timer = new DispatcherTimer();
             timer.Interval = new TimeSpan(0, 0, SiteMonitorSecPerLoop);
             timer.Tick += (sender, args) => { GetUrlAndBlockAsync(blockSites); };
         }
 
         private void StopPomodoro()
         {
-            PomodoroButton.Content = $"START";
+            PomodoroButton.Content = "START";
             _isPomodoroRunning = false;
             PomodoroButton.Foreground = Brushes.Black;
         }
@@ -241,145 +319,6 @@ namespace ChattingHabit
             number = 0;
             return false;
         }
-
-        /*private async void OnSyncTestButtonDown(object sender, RoutedEventArgs e)
-        {
-            // modify UI object in UI thread
-            AsyncTestText.Text = "started";
-
-            // run a method in another thread
-            await Task.Run(() => HeavyMethod(AsyncTestText));
-            // <<method execution is finished here>>
-
-            // modify UI object in UI thread
-            AsyncTestText.Text = "done";
-        }
-        */
-
-        /*
-        private void ShowProcesses()
-        {
-            var processes = Process.GetProcesses().OrderBy(x => x.ProcessName).ToArray();
-            var listBox = new ListBox();
-            ProcessList.Content = listBox;
-            listBox.DisplayMemberPath = "Name";
-            foreach (var process in processes)
-            {
-                listBox.Items.Add(new ListBoxElem {Name = process.ProcessName});
-            }
-        }*/
-
-        /*
-        private void IfTimeOverResetUsedTime()
-        {
-            if (DateTime.Now >= _nextResetTime)
-            {
-                _processCollection.ResetUsedTime();
-                _nextResetTime = _nextResetTime + new TimeSpan(1, 0, 0, 0);
-                EventManager.ShowLogMessage("사용량이 리셋 되었습니다!");
-            }
-        }*/
-
-        /*
-        private void LoadMonitoringProcesses()
-        {
-            if (File.Exists(_saveFilePath))
-            {
-                var json = File.ReadAllText(_saveFilePath);
-                _processCollection = JsonConvert.DeserializeObject<ProcessCollection>(json);
-                if (_isFirstRunningInDay)
-                {
-                    _processCollection.ResetUsedTime();
-                }
-            }
-            else
-            {
-                _processCollection = new ProcessCollection();
-                _processCollection.Add("KakaoTalk");
-                _processCollection.Add("slack");
-                _processCollection.Add("discord");
-            }
-        }*/
-
-        /*
-        private void LoadSystemSetting()
-        {
-            SystemSettingSaveData systemSettingSaveData;
-            if (!File.Exists(_systemSaveFilePath))
-            {
-                systemSettingSaveData = SystemSettingSaveData.Default();
-            }
-            else
-            {
-                var json = File.ReadAllText(_systemSaveFilePath);
-                systemSettingSaveData = JsonConvert.DeserializeObject<SystemSettingSaveData>(json);
-            }
-
-            SessionTimeLimitMinute = systemSettingSaveData.SessionTimeLimitMinute;
-            TotalTimeLimitMinute = systemSettingSaveData.TotalTimeLimitMinute;
-            _nextResetTime = systemSettingSaveData.NextResetTime;
-            ResetHourText.Text = _nextResetTime.Hour.ToString();
-            ResetMinText.Text = _nextResetTime.Minute.ToString();
-        }
-        */
-
-        /*
-        public void OnClick_ChangeTotalLimitButton(object sender, RoutedEventArgs e)
-        {
-            if (TryGetNumber(TotalLimitText.Text, out var minute))
-            {
-                ChangeTotalLimit(minute);
-            }
-        }
-
-        private void OnClick_ChangeSessionLimitButton(object sender, RoutedEventArgs e)
-        {
-            if (TryGetNumber(SessionLimitText.Text, out var minute))
-            {
-                ChangeSessionLimit(minute);
-            }
-        }*/
-
-        /*
-        private void OnClick_ChangeResetTime(object sender, RoutedEventArgs e)
-        {
-            if (TryGetNumber(ResetHourText.Text, out var hour) && TryGetNumber(ResetMinText.Text, out var min) && hour <= 24 && min <= 60)
-            {
-                var resetTime = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, hour, min, DateTime.Now.Second);
-                if (resetTime < DateTime.Now)
-                {
-                    resetTime += new TimeSpan(1, 0, 0, 0);
-                }
-                _nextResetTime = resetTime;
-                EventManager.ShowLogMessage($"리셋 시간이 변경되었습니다. {_nextResetTime.ToLongTimeString()}");
-            }
-        }
-        */
-
-        /*
-        public static bool IsValidProcessName(string processName)
-        {
-            var processes = Process.GetProcesses();
-            return processes.Any(x => x.ProcessName == processName);
-        }*/
-
-        /*
-        private void ChangeSessionLimit(int minute)
-        {
-            SessionTimeLimitMinute = minute;
-            _processCollection.ChangeAllSessionTimeLimit(minute);
-            SessionLimitText.Text = minute.ToString();
-            EventManager.ShowLogMessage($"1회 사용시간이 {minute}분으로 변경되었습니다!");
-        }
-
-        private void ChangeTotalLimit(int minute)
-        {
-            TotalTimeLimitMinute = minute;
-            _processCollection.ChangeAllTotalTimeLimit(minute);
-            TotalLimitText.Text = minute.ToString();
-            EventManager.ShowLogMessage($"하루 사용시간이 {minute} 분으로 변경되었습니다!");
-        }
-        */
     }
 
     public class ListBoxElem
@@ -399,6 +338,29 @@ namespace ChattingHabit
             {
                 SessionTimeLimitMinute = 5, TotalTimeLimitMinute = 60, NextResetTime = DateTime.Now + new TimeSpan(1, 0, 0, 0)
             };
+        }
+    }
+
+    [Serializable]
+    public class PomodoroResultSaveData
+    {
+        public Dictionary<DateInfo, int> ResultDictionary = new Dictionary<DateInfo, int>();
+    }
+
+    [Serializable]
+    public class DateInfo
+    {
+        public int Day;
+        public int Month;
+        public int Year;
+
+        public static DateInfo FromDateTime(DateTime dateTime)
+        {
+            var date = new DateInfo();
+            date.Year = dateTime.Year;
+            date.Month = dateTime.Month;
+            date.Day = dateTime.Day;
+            return date;
         }
     }
 }

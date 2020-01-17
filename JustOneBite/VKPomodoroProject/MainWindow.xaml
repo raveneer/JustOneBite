@@ -1,0 +1,34 @@
+﻿<Window x:Class="ChattingHabit.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ChattingHabit"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="208.333" Width="201.667" Topmost="True">
+    <Grid>
+        <Grid.Background>
+            <LinearGradientBrush EndPoint="0.5,1" MappingMode="RelativeToBoundingBox" StartPoint="0.5,0">
+                <GradientStop Color="Black" Offset="1"/>
+                <GradientStop Color="#FFF90707"/>
+            </LinearGradientBrush>
+        </Grid.Background>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+            <ColumnDefinition Width="0*"/>
+        </Grid.ColumnDefinitions>
+        <Button x:Name="PomodoroButton" Content="START" HorizontalAlignment="Left" Margin="22,19,0,0" VerticalAlignment="Top" Width="150" Height="80" Click="OnClick_PomodoroButton" Foreground="{DynamicResource {x:Static SystemColors.ActiveCaptionTextBrushKey}}" FontFamily="Microsoft YaHei UI" FontSize="40" Background="#FFDDDDDD" />
+        <TextBox x:Name="LogText" HorizontalAlignment="Left" Height="40" Margin="22,112,0,0" TextWrapping="Wrap"  IsReadOnly ="True" Text="logText" VerticalAlignment="Top" Width="150" RenderTransformOrigin="0.494,0.502" >
+            <TextBox.RenderTransform>
+                <TransformGroup>
+                    <ScaleTransform/>
+                    <SkewTransform AngleY="0"/>
+                    <RotateTransform/>
+                    <TranslateTransform Y="0"/>
+                </TransformGroup>
+            </TextBox.RenderTransform>
+        </TextBox>
+    </Grid>
+</Window>
+    
+    
