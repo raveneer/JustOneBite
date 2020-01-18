@@ -1,9 +1,9 @@
-﻿<Window x:Class="ChattingHabit.MainWindow"
+﻿<Window x:Class="VKPomodoro.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:ChattingHabit"
+        xmlns:local="clr-namespace:VKPomodoro"
         mc:Ignorable="d"
         Title="MainWindow" Height="208.333" Width="201.667" Topmost="True">
     <Grid>

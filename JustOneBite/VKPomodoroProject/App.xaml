@@ -1,9 +1,9 @@
-﻿<Application x:Class="ChattingHabit.App"
+﻿<Application x:Class="VKPomodoro.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:ChattingHabit"
+             xmlns:local="clr-namespace:VKPomodoro"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
-         
+
     </Application.Resources>
 </Application>

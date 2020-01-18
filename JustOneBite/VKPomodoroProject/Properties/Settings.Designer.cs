@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace ChattingHabit.Properties
+namespace VKPomodoro.Properties
 {
 
 

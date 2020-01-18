@@ -1,25 +1,63 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Linq;
-using System.Media;
 
-namespace ChattingHabit
+namespace VKPomodoro
 {
     [Serializable]
     public class MonitoringProcess
     {
         public int ActivatedCount;
         public bool CurrentActive;
+        public DateTime LastSessionClosedTime;
         public string ProcessName;
         public TimeSpan SessionTimeLimit;
         public TimeSpan SessionUsedTime;
         public TimeSpan TotalUsedTime;
         public TimeSpan TotalUsedTimeLimit;
-        public DateTime LastSessionClosedTime;
+        private DateTime _prevTickTime;
+        private readonly int MaxActivatePerDay = 10;
 
         private readonly TimeSpan SessionCoolDown = new TimeSpan(0, 10, 0);
-        private readonly int MaxActivatePerDay = 10;
-        private DateTime _prevTickTime;
+
+        public string GetInfo()
+        {
+            return
+                $"{ProcessName} ({IsRunningString()})"
+                + "\r\n" +
+                $"1회 사용한도 : {SessionTimeLimit.TotalMinutes}분 (현재 {SessionUsedTime.Minutes}분 {SessionUsedTime.Seconds}초 사용중)"
+                + "\r\n" +
+                $"하루 사용한도 : {TotalUsedTimeLimit.TotalMinutes}분 (현재 {TotalUsedTime.Minutes}분 {TotalUsedTime.Seconds}초 사용중)"
+                + "\r\n" +
+                $"켠 회수 : {ActivatedCount} / {MaxActivatePerDay} 회"
+                + "\r\n" +
+                "입력한 문자 : xx 자";
+        }
+
+        public static MonitoringProcess GetNewProcess(string name, int sessionTimeLimit, int totalTimeLimit)
+        {
+            return new MonitoringProcess
+            {
+                ProcessName = name, SessionTimeLimit = new TimeSpan(0, sessionTimeLimit, 0), TotalUsedTimeLimit = new TimeSpan(0, totalTimeLimit, 0)
+            };
+        }
+
+        public void KillProcess()
+        {
+            KillApp();
+            KillWebPage();
+
+            SessionUsedTime = new TimeSpan(0);
+            LastSessionClosedTime = DateTime.Now;
+            EventManager.Broadcast_PlayTimeOverSound();
+        }
+
+        public void Reset()
+        {
+            SessionUsedTime = new TimeSpan();
+            TotalUsedTime = new TimeSpan();
+            ActivatedCount = 0;
+        }
 
         public void Tick()
         {
@@ -80,29 +118,26 @@ namespace ChattingHabit
             _prevTickTime = DateTime.Now;
         }
 
-        public static MonitoringProcess GetNewProcess(string name, int sessionTimeLimit, int totalTimeLimit)
+        private bool IsAppRunning()
         {
-            return new MonitoringProcess
-            {
-                ProcessName = name,
-                SessionTimeLimit = new TimeSpan(0, sessionTimeLimit, 0),
-                TotalUsedTimeLimit = new TimeSpan(0, totalTimeLimit, 0)
-            };
+            var processes = Process.GetProcessesByName(ProcessName);
+
+            return processes.Any();
         }
 
-        public void KillProcess()
+        private bool IsProcessRunning()
         {
-            KillApp();
-            KillWebPage();
-
-            SessionUsedTime = new TimeSpan(0);
-            LastSessionClosedTime = DateTime.Now;
-            EventManager.Broadcast_PlayTimeOverSound();
+            return IsAppRunning() || IsWebPageRunning();
         }
 
-        private void KillWebPage()
+        private string IsRunningString()
         {
-            WebPageMonitor.CloseFocusedWebPage(ProcessName);
+            return IsProcessRunning() ? "사용중" : "꺼짐";
+        }
+
+        private bool IsWebPageRunning()
+        {
+            return WebPageMonitor.IsWebPageFocused(ProcessName);
         }
 
         private void KillApp()
@@ -118,47 +153,9 @@ namespace ChattingHabit
             }
         }
 
-        public string GetInfo()
+        private void KillWebPage()
         {
-            return
-                $"{ProcessName} ({IsRunningString()})"
-                + "\r\n" +
-                $"1회 사용한도 : {SessionTimeLimit.TotalMinutes}분 (현재 {SessionUsedTime.Minutes}분 {SessionUsedTime.Seconds}초 사용중)"
-                + "\r\n" +
-                $"하루 사용한도 : {TotalUsedTimeLimit.TotalMinutes}분 (현재 {TotalUsedTime.Minutes}분 {TotalUsedTime.Seconds}초 사용중)"
-                + "\r\n" +
-                $"켠 회수 : {ActivatedCount} / {MaxActivatePerDay} 회"
-                + "\r\n" +
-                $"입력한 문자 : xx 자";
-        }
-
-        private bool IsProcessRunning()
-        {
-            return IsAppRunning() || IsWebPageRunning();
-        }
-
-        private bool IsAppRunning()
-        {
-            var processes = Process.GetProcessesByName(ProcessName);
-
-            return processes.Any();
-        }
-
-        private bool IsWebPageRunning()
-        {
-            return WebPageMonitor.IsWebPageFocused(ProcessName);
-        }
-
-        private string IsRunningString()
-        {
-            return IsProcessRunning() ? "사용중" : "꺼짐";
-        }
-
-        public void Reset()
-        {
-            SessionUsedTime = new TimeSpan();
-            TotalUsedTime = new TimeSpan();
-            ActivatedCount = 0;
+            WebPageMonitor.CloseFocusedWebPage(ProcessName);
         }
     }
 }

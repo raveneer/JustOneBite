@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace ChattingHabit
+namespace VKPomodoro
 {
     public static class EventManager
     {

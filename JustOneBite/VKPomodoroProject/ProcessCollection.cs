@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 
-namespace ChattingHabit
+namespace VKPomodoro
 {
     [Serializable]
     public class ProcessCollection
@@ -32,7 +32,7 @@ namespace ChattingHabit
                 {
                     continue;
                 }
-                AddMonitoringProcess(name, MainWindow.SessionTimeLimitMinute, MainWindow.TotalTimeLimitMinute);
+                //AddMonitoringProcess(name, MainWindow.SessionTimeLimitMinute, MainWindow.TotalTimeLimitMinute);
             }
 
             foreach (var monitoringProcess in Processes)
