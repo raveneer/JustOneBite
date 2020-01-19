@@ -8,7 +8,7 @@ namespace VKPomodoro
     {
         public static int LoadPomodoroResult()
         {
-            if (!File.Exists("SaveData.json"))
+            /*if (!File.Exists("SaveData.json"))
             {
                 return 0;
             }
@@ -17,7 +17,7 @@ namespace VKPomodoro
             if (saveData.ResultDictionary.TryGetValue(DateInfo.FromDateTime(DateTime.Now), out var count))
             {
                 return count;
-            }
+            }*/
             return 0;
         }
 

@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:VKPomodoro"
         mc:Ignorable="d"
-        Title="MainWindow" Height="208.333" Width="201.667" Topmost="True">
+        Title="MainWindow" Height="190" Width="200" Topmost="True" MouseDown="Window_MouseDown">
     <Grid>
         <Grid.Background>
             <LinearGradientBrush EndPoint="0.5,1" MappingMode="RelativeToBoundingBox" StartPoint="0.5,0">
@@ -17,8 +17,8 @@
             <ColumnDefinition/>
             <ColumnDefinition Width="0*"/>
         </Grid.ColumnDefinitions>
-        <Button x:Name="PomodoroButton" Content="START" HorizontalAlignment="Left" Margin="22,19,0,0" VerticalAlignment="Top" Width="150" Height="80" Click="OnClick_PomodoroButton" Foreground="{DynamicResource {x:Static SystemColors.ActiveCaptionTextBrushKey}}" FontFamily="Microsoft YaHei UI" FontSize="40" Background="#FFDDDDDD" />
-        <TextBox x:Name="LogText" HorizontalAlignment="Left" Height="40" Margin="22,112,0,0" TextWrapping="Wrap"  IsReadOnly ="True" Text="logText" VerticalAlignment="Top" Width="150" RenderTransformOrigin="0.494,0.502" >
+        <Button x:Name="PomodoroButton" Content="START" HorizontalAlignment="Center" Margin="20,10,20,0" VerticalAlignment="Top" Width="150" Height="80" Click="OnClick_PomodoroButton" Foreground="{DynamicResource {x:Static SystemColors.ActiveCaptionTextBrushKey}}" FontFamily="Microsoft YaHei UI" FontSize="40" Background="#FFDDDDDD" />
+        <TextBox x:Name="LogText" HorizontalAlignment="Center" Height="40" Margin="22,95,22,0" TextWrapping="Wrap"  IsReadOnly ="True" Text="logText" VerticalAlignment="Top" Width="150" RenderTransformOrigin="0.494,0.502" >
             <TextBox.RenderTransform>
                 <TransformGroup>
                     <ScaleTransform/>
