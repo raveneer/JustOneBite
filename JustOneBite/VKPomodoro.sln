@@ -5,6 +5,8 @@ VisualStudioVersion = 15.0.27703.2026
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VKPomodoro", "VKPomodoroProject\VKPomodoro.csproj", "{E3CB0383-48BD-48B7-B3CE-CE3144DCFB91}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NUnitTestProject", "NUnitTestProject\NUnitTestProject.csproj", "{770FA50D-CA5E-4215-BB5C-6CDB03C432EA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{E3CB0383-48BD-48B7-B3CE-CE3144DCFB91}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E3CB0383-48BD-48B7-B3CE-CE3144DCFB91}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E3CB0383-48BD-48B7-B3CE-CE3144DCFB91}.Release|Any CPU.Build.0 = Release|Any CPU
+		{770FA50D-CA5E-4215-BB5C-6CDB03C432EA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{770FA50D-CA5E-4215-BB5C-6CDB03C432EA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{770FA50D-CA5E-4215-BB5C-6CDB03C432EA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{770FA50D-CA5E-4215-BB5C-6CDB03C432EA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

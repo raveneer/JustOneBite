@@ -58,7 +58,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="DateInfo.cs" />
-    <Compile Include="PomodoroResultSaveData.cs" />
+    <Compile Include="PomodoroSaveData.cs" />
     <Compile Include="PomodoroSaveManager.cs" />
     <Compile Include="WebPageMonitor.cs" />
     <Page Include="MainWindow.xaml">

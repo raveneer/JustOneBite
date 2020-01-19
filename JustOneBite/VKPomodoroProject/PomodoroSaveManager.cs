@@ -8,16 +8,16 @@ namespace VKPomodoro
     {
         public static int LoadPomodoroResult()
         {
-            /*if (!File.Exists("SaveData.json"))
+            if (!File.Exists("SaveData.json"))
             {
                 return 0;
             }
 
-            var saveData = JsonConvert.DeserializeObject<PomodoroResultSaveData>(File.ReadAllText("SaveData.json"));
-            if (saveData.ResultDictionary.TryGetValue(DateInfo.FromDateTime(DateTime.Now), out var count))
+            var saveData = JsonConvert.DeserializeObject<PomodoroSaveData>(File.ReadAllText("SaveData.json"));
+            if (saveData.TryGetTodayPomodoroCount(out int found))
             {
-                return count;
-            }*/
+                return found;
+            }
             return 0;
         }
 
@@ -28,18 +28,18 @@ namespace VKPomodoro
             {
                 var stream = File.Create("SaveData.json");
                 stream.Close();
-                var thisSessionSaveData = new PomodoroResultSaveData();
-                thisSessionSaveData.ResultDictionary.Add(DateInfo.FromDateTime(DateTime.Now), completePomodoroToday);
+                var thisSessionSaveData = new PomodoroSaveData();
+                thisSessionSaveData.ResultDictionary.Add(PomodoroSaveData.GetDateString(), completePomodoroToday);
                 var saveDataString = JsonConvert.SerializeObject(thisSessionSaveData);
                 File.WriteAllText("SaveData.json", saveDataString);
                 return;
             }
 
             //파일이 있으면 기존 데이터를 읽어와서 수정사항을 저장함.
-            var saveData = JsonConvert.DeserializeObject<PomodoroResultSaveData>(File.ReadAllText("SaveData.json"));
-            if (saveData.ResultDictionary.ContainsKey(DateInfo.FromDateTime(DateTime.Now)))
+            var saveData = JsonConvert.DeserializeObject<PomodoroSaveData>(File.ReadAllText("SaveData.json"));
+            if (saveData.ResultDictionary.ContainsKey(PomodoroSaveData.GetDateString()))
             {
-                saveData.ResultDictionary[DateInfo.FromDateTime(DateTime.Now)] = completePomodoroToday;
+                saveData.ResultDictionary[PomodoroSaveData.GetDateString()] = completePomodoroToday;
                 var saveDataString = JsonConvert.SerializeObject(saveData);
                 File.WriteAllText("SaveData.json", saveDataString);
             }
