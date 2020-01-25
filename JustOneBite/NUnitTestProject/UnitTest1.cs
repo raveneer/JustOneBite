@@ -19,7 +19,7 @@ namespace Tests
         public void Test1()
         {
             var saveData = new PomodoroSaveData();
-            saveData.ResultDictionary = new Dictionary<string, int>(){{PomodoroSaveData.GetDateString(), 1}};
+            saveData.ResultDictionary = new Dictionary<string, int>(){{PomodoroSaveData.GetTodayString(), 1}};
             var serialString = saveData.Serialize();
 
             Debug.WriteLine(serialString);
@@ -29,33 +29,14 @@ namespace Tests
             Assert.AreEqual(saveData.ResultDictionary.First().Value, otherSaveData.ResultDictionary.First().Value);
             Assert.AreEqual(saveData.ResultDictionary.First().Key, otherSaveData.ResultDictionary.First().Key);
         }
-    }
-
-    public class Test_DateInfo
-    {
-        [Test]
-        public void Test_FromDateTime()
-        {
-            Assert.AreEqual(DateInfo.FromDateTime(new DateTime(2000,1,2)).Year , 2000);
-            Assert.AreEqual(DateInfo.FromDateTime(new DateTime(2000,1,2)).Month , 1);
-            Assert.AreEqual(DateInfo.FromDateTime(new DateTime(2000,1,2)).Day, 2);
-        }
 
         [Test]
-        public void Test_Same()
+        public void Test_TryGetTodayPomodoroCount()
         {
-            Assert.AreEqual(DateInfo.FromDateTime(new DateTime(2000,1,2)), DateInfo.FromDateTime(new DateTime(2000,1,2)));
-        }
-
-        [Test]
-        public void Test_Serialize()
-        {
-            var dateInfo = DateInfo.FromDateTime(new DateTime(2000,1,2));
-            var serial = JsonConvert.SerializeObject(dateInfo);
-            Assert.NotNull(serial);
-            var newDateInfo = JsonConvert.DeserializeObject<DateInfo>(serial);
-            Assert.AreEqual(dateInfo, newDateInfo);
-
+            var saveData = new PomodoroSaveData {ResultDictionary = new Dictionary<string, int>() {{DateTime.Now.ToShortDateString(), 1}}};
+            saveData.TryGetTodayPomodoroCount(out var found);
+            Assert.AreEqual(1, found);
         }
     }
+
 }

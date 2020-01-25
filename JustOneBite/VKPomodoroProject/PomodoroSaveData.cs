@@ -21,10 +21,10 @@ namespace VKPomodoro
 
         public bool TryGetTodayPomodoroCount(out int found)
         {
-            return ResultDictionary.TryGetValue(GetDateString(), out found);
+            return ResultDictionary.TryGetValue(GetTodayString(), out found);
         }
 
-        public static string GetDateString()
+        public static string GetTodayString()
         {
             return $"{DateTime.Now.ToShortDateString()}";
         }
