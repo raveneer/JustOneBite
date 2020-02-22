@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:VKPomodoro"
         mc:Ignorable="d"
-        Title="Pomodoro!" Height="120" Width="160" Topmost="True" MouseDown="Window_MouseDown" ResizeMode="NoResize" Cursor="Hand" WindowStyle="None">
+        Title="Pomodoro!" Height="140" Width="180" Topmost="True" MouseDown="Window_MouseDown" ResizeMode="NoResize" Cursor="Hand" WindowStyle="None">
     <Grid>
         <Grid.Background>
             <LinearGradientBrush EndPoint="0.5,1" MappingMode="RelativeToBoundingBox" StartPoint="0.5,0">
@@ -17,8 +17,18 @@
             <ColumnDefinition/>
             <ColumnDefinition Width="0*"/>
         </Grid.ColumnDefinitions>
-        <Button x:Name="PomodoroButton" Content="START" HorizontalAlignment="Stretch" Margin="10,10,10,0" VerticalAlignment="Top" Height="70" Click="OnClick_PomodoroButton" Foreground="{DynamicResource {x:Static SystemColors.ActiveCaptionTextBrushKey}}" FontFamily="Microsoft YaHei UI" FontSize="36" Background="#FFDDDDDD" />
-        <TextBox x:Name="LogText" HorizontalAlignment="Stretch" Height="20" Margin="10,0,10,10" TextWrapping="Wrap"  IsReadOnly ="True" Text="logText" VerticalAlignment="Bottom" RenderTransformOrigin="0.494,0.502" TextAlignment="Center" >
+        <Button x:Name="PomodoroButton" Content="START" HorizontalAlignment="Stretch" Margin="10,10,10,0" VerticalAlignment="Top" Height="70" Click="OnClick_PomodoroButton" Foreground="{DynamicResource {x:Static SystemColors.ActiveCaptionTextBrushKey}}" FontFamily="Microsoft YaHei UI" FontSize="36" Background="#FFDDDDDD" Grid.RowSpan="3" />
+        <TextBox x:Name="TaskText" HorizontalAlignment="Stretch" Height="20" Margin="10,0,10,35" TextWrapping="Wrap"  IsReadOnly ="False" Text="input todo" VerticalAlignment="Bottom" RenderTransformOrigin="0.494,0.502" TextAlignment="Center" Background="#FFFAFFDA" >
+            <TextBox.RenderTransform>
+                <TransformGroup>
+                    <ScaleTransform/>
+                    <SkewTransform AngleY="0"/>
+                    <RotateTransform/>
+                    <TranslateTransform Y="0"/>
+                </TransformGroup>
+            </TextBox.RenderTransform>
+        </TextBox>
+        <TextBox x:Name="LogText" HorizontalAlignment="Stretch" Height="20" Margin="10,0,10,10" TextWrapping="Wrap"  IsReadOnly ="True" Text="logText" VerticalAlignment="Bottom" RenderTransformOrigin="0.494,0.502" TextAlignment="Center" Grid.Row="3" >
             <TextBox.RenderTransform>
                 <TransformGroup>
                     <ScaleTransform/>
